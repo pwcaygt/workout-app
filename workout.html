@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>健身紀錄</title>
+<meta name="theme-color" content="#007aff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="健身紀錄">
+<link id="apple-touch-icon" rel="apple-touch-icon">
 <style>
 :root {
   --bg:      #f2f2f7;
@@ -939,6 +944,100 @@ function getWeekDates(d){
 // ─── INIT ───────────────────────────────────────────────────
 initCal();
 renderHome();
+
+// ─── PWA ────────────────────────────────────────────────────
+(function(){
+  // 1. 產生 APP 圖示（canvas 畫一個藍底啞鈴）
+  function makeIcon(size){
+    const c=document.createElement('canvas');
+    c.width=c.height=size;
+    const ctx=c.getContext('2d');
+    // 背景
+    ctx.fillStyle='#007aff';
+    const r=size*0.2;
+    ctx.beginPath();
+    ctx.moveTo(r,0);ctx.lineTo(size-r,0);
+    ctx.quadraticCurveTo(size,0,size,r);
+    ctx.lineTo(size,size-r);
+    ctx.quadraticCurveTo(size,size,size-r,size);
+    ctx.lineTo(r,size);
+    ctx.quadraticCurveTo(0,size,0,size-r);
+    ctx.lineTo(0,r);
+    ctx.quadraticCurveTo(0,0,r,0);
+    ctx.closePath();
+    ctx.fill();
+    // 啞鈴槓
+    const cx=size/2, cy=size/2, bw=size*0.48, bh=size*0.08;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();
+    ctx.roundRect(cx-bw/2, cy-bh/2, bw, bh, bh/2);
+    ctx.fill();
+    // 左圓盤
+    const pw=size*0.1, ph=size*0.3;
+    [[cx-bw/2-pw, cy-ph/2],[cx+bw/2, cy-ph/2]].forEach(([x,y])=>{
+      ctx.beginPath();
+      ctx.roundRect(x, y, pw, ph, pw/2);
+      ctx.fill();
+    });
+    return c.toDataURL('image/png');
+  }
+
+  const icon192 = makeIcon(192);
+  const icon512 = makeIcon(512);
+
+  // iOS 桌面圖示
+  document.getElementById('apple-touch-icon').href = icon192;
+
+  // 2. 動態注入 manifest（blob URL）
+  const manifest = {
+    name: '健身紀錄',
+    short_name: '健身',
+    description: '記錄訓練動作、組數、重量與休息時間',
+    start_url: './',
+    scope: './',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#f2f2f7',
+    theme_color: '#007aff',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = manifestURL;
+  document.head.appendChild(link);
+
+  // 3. 動態注入 Service Worker（blob URL，讓頁面離線也能用）
+  const swCode = `
+const CACHE = 'workout-v1';
+const URLS  = [self.registration.scope];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+    if(res.ok){ const clone=res.clone(); caches.open(CACHE).then(c=>c.put(e.request,clone)); }
+    return res;
+  }).catch(() => caches.match(e.request))));
+});
+  `;
+  if('serviceWorker' in navigator){
+    const swBlob = new Blob([swCode], {type:'text/javascript'});
+    const swURL  = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL, {scope: './'})
+      .catch(()=>{}); // 部分瀏覽器限制 blob SW，靜默略過
+  }
+})();
 </script>
 </body>
 </html>
