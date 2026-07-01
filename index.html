@@ -1,1043 +1,2277 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>健身紀錄</title>
-<meta name="theme-color" content="#007aff">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="健身紀錄">
-<link id="apple-touch-icon" rel="apple-touch-icon">
+<title>健身紀錄</title>
 <style>
-:root {
-  --bg:      #f2f2f7;
-  --bg2:     #ffffff;
-  --bg3:     #f2f2f7;
-  --bg4:     #e5e5ea;
-  --text:    #1c1c1e;
-  --text2:   #3c3c43cc;
-  --text3:   #3c3c4399;
-  --accent:  #007aff;
-  --red:     #ff3b30;
-  --green:   #34c759;
-  --border:  rgba(60,60,67,.12);
-  --radius:  13px;
-  --shadow:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f2f2f7;--card:#fff;--text:#000;--text2:#6e6e73;--text3:#48484a;--sep:#c6c6c8;
+  --accent:#007aff;--red:#ff3b30;--green:#34c759;--orange:#ff9f0a;--purple:#af52de;
+  --nav-bg:rgba(255,255,255,0.85);--input-bg:#f2f2f7;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+  --toggle-off:#e5e5ea;
+  --grid-line:rgba(0,0,0,0.06);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;padding-bottom:84px}
-
-/* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 0 5px;gap:3px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;user-select:none;transition:color .15s}
-.nav-item.active{color:var(--accent)}
-.nav-icon{font-size:23px;line-height:1}
-
+[data-theme="dark"]{
+  --bg:#1c1c1e;--card:#2c2c2e;--text:#fff;--text2:#aeaeb2;--text3:#d1d1d6;--sep:#38383a;
+  --purple:#bf5af2;
+  --nav-bg:rgba(28,28,30,0.85);--input-bg:#3a3a3c;
+  --shadow:0 2px 12px rgba(0,0,0,0.4);
+  --toggle-off:#48484a;
+  --grid-line:rgba(255,255,255,0.08);
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);font-size:16px;transition:background .3s,color .3s}
+body{display:flex;flex-direction:column;overflow:hidden}
+#app{flex:1;overflow:hidden;display:flex;flex-direction:column;
+  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 /* PAGES */
-.page{display:none}
-.page.active{display:block}
-
+.page{display:none;flex:1;overflow-y:auto;padding:0 0 96px;-webkit-overflow-scrolling:touch}
+.page.active{display:block;animation:page-in .2s ease}
+@keyframes page-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+/* NAV */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--nav-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--sep);
+  display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 6px;border:none;background:none;color:var(--text2);font-size:10px;cursor:pointer;transition:color .2s;gap:3px}
+.nav-btn svg{width:24px;height:24px;display:block}
+.nav-btn.active{color:var(--accent)}
+/* Raised center dumbbell button */
+.nav-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;border:none;background:none;cursor:pointer;font-size:10px;color:var(--text2);gap:4px;padding-top:6px}
+.nav-center .nav-center-btn{
+  width:60px;height:60px;border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  border:6px solid var(--card);margin-top:-28px;
+  box-shadow:0 4px 12px rgba(0,122,255,.4);transition:transform .12s,box-shadow .2s;
+}
+.nav-center .nav-center-btn svg{width:28px;height:28px;stroke:#fff}
+.nav-center:active .nav-center-btn{transform:scale(.92)}
+.nav-center.active{color:var(--accent);font-weight:700}
+.nav-center.active .nav-center-btn{box-shadow:0 4px 18px rgba(0,122,255,.6)}
+/* CARDS */
+.card{background:var(--card);border-radius:12px;padding:16px;margin:8px 16px;box-shadow:var(--shadow)}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
 /* HEADER */
-.page-hd{padding:52px 20px 10px;display:flex;align-items:flex-end;justify-content:space-between}
-.page-title{font-size:30px;font-weight:700;letter-spacing:-.5px}
-.icon-btn{background:var(--bg4);border:none;color:var(--accent);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:600;flex-shrink:0;transition:opacity .15s}
-.icon-btn:active{opacity:.6}
-
-/* SECTION LABEL */
-.sec-label{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:16px 20px 6px}
-
-/* STATS */
-.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:4px 20px 0}
-.stat-card{background:var(--bg2);border-radius:var(--radius);padding:14px 12px;box-shadow:var(--shadow)}
-.stat-num{font-size:24px;font-weight:700;color:var(--accent)}
-.stat-label{font-size:11px;color:var(--text3);margin-top:3px}
-
-/* LIST CARDS */
-.list-card{background:var(--bg2);border-radius:var(--radius);margin:0 20px 10px;overflow:hidden;box-shadow:var(--shadow)}
-.list-row{display:flex;align-items:center;padding:14px 16px;border-bottom:.5px solid var(--border)}
-.list-row:last-child{border-bottom:none}
-
-/* ROUTINE */
-.routine-wrap{margin:0 20px 10px}
-.routine-card{background:var(--bg2);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:10px}
-.routine-top{display:flex;align-items:flex-start;gap:12px}
-.routine-title{font-size:17px;font-weight:600;color:var(--text)}
-.routine-sub{font-size:13px;color:var(--text3);margin-top:3px}
-.routine-btns{display:flex;gap:8px;flex-shrink:0}
-
-/* BTN */
-.btn{border:none;border-radius:13px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;transition:opacity .15s}
+.page-header{padding:12px 16px 8px;padding-top:calc(env(safe-area-inset-top) + 12px)}
+.page-title{font-size:28px;font-weight:700}
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 16px}
+.stat-card{background:var(--card);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow)}
+.stat-val{font-size:24px;font-weight:700;color:var(--accent)}
+.stat-label{font-size:11px;color:var(--text2);margin-top:2px}
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-nav{background:none;border:none;font-size:20px;cursor:pointer;color:var(--accent);padding:4px 8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:11px;color:var(--text2);padding:4px 0;font-weight:600}
+.cal-day{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:50%;font-size:13px;cursor:pointer;position:relative;transition:background .15s
+}
+.cal-day:hover{background:var(--input-bg)}
+.cal-day.today{background:var(--accent);color:#fff;font-weight:700}
+.cal-day.has-workout::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--orange)}
+.cal-day.today.has-workout::after{background:#fff}
+.cal-day.selected{outline:2px solid var(--accent)}
+.cal-day.other-month{color:var(--text2);opacity:.4}
+/* ROUTINE LIST */
+.routine-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--sep)}
+.routine-item:last-child{border-bottom:none}
+.routine-info{flex:1}
+.routine-name{font-weight:600;font-size:15px}
+.routine-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.routine-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;padding:8px 14px;transition:opacity .15s}
 .btn:active{opacity:.7}
 .btn-primary{background:var(--accent);color:#fff}
-.btn-secondary{background:var(--bg4);color:var(--text)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-sm{padding:7px 14px;font-size:14px;border-radius:10px;width:auto}
-.btn-text{background:none;border:none;color:var(--accent);font-size:16px;font-weight:600;cursor:pointer;padding:8px 0;font-family:inherit}
-
-/* CALENDAR */
-.calendar-wrap{background:var(--bg2);border-radius:var(--radius);margin:0 20px;box-shadow:var(--shadow);overflow:hidden}
-.cal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
-.cal-month{font-size:17px;font-weight:700}
-.cal-nav-btn{background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%}
-.cal-nav-btn:active{background:var(--bg3)}
-.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);padding:0 8px}
-.cal-day-name{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:4px 0}
-.cal-days{display:grid;grid-template-columns:repeat(7,1fr);padding:0 8px 12px;gap:2px}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);position:relative;transition:background .15s}
-.cal-day:active{background:var(--bg3)}
-.cal-day.other-month{color:var(--text3)}
-.cal-day.today{font-weight:700;color:var(--accent)}
-.cal-day.today::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--accent);position:absolute;bottom:3px;left:50%;transform:translateX(-50%)}
-.cal-day.trained{background:var(--accent);color:#fff}
-.cal-day.trained.today::after{background:#fff}
-.cal-day.selected{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,122,255,.4)}
-
-/* WORKOUT HEADER */
-.workout-top{padding:48px 20px 16px;background:var(--bg2);border-bottom:.5px solid var(--border)}
-.workout-name-input{background:transparent;border:none;color:var(--text);font-size:22px;font-weight:700;width:100%;outline:none;font-family:inherit}
-.workout-name-input::placeholder{color:var(--text3)}
-.workout-meta{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
-.workout-elapsed{font-size:14px;color:var(--text3);display:flex;align-items:center;gap:6px}
-.active-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;animation:blink 1.5s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.workout-date-badge{background:var(--bg3);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:600;color:var(--accent)}
-
+.btn-secondary{background:var(--input-bg);color:var(--text)}
+.btn-red{background:var(--red);color:#fff}
+.btn-sm{font-size:12px;padding:5px 10px;border-radius:8px}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:10px}
 /* EXERCISE BLOCK */
-.ex-block{background:var(--bg2);border-radius:var(--radius);margin:12px 20px 0;overflow:hidden;box-shadow:var(--shadow)}
-.ex-block-hd{padding:14px 16px 6px;display:flex;align-items:center;justify-content:space-between}
-.ex-block-name{font-size:16px;font-weight:700;color:var(--accent)}
-.ex-block-hint{font-size:12px;color:var(--text3);margin-top:2px}
-.set-grid{display:grid;grid-template-columns:28px 1fr 1fr 40px;gap:6px;padding:6px 16px;align-items:center}
-.set-hd-text{font-size:11px;color:var(--text3);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.set-num{font-size:13px;color:var(--text3);text-align:center}
-.set-input{background:var(--bg3);border:1.5px solid transparent;color:var(--text);font-size:16px;font-weight:600;text-align:center;border-radius:9px;padding:9px 4px;width:100%;outline:none;font-family:inherit;transition:border-color .2s}
-.set-input:focus{border-color:var(--accent);background:#fff}
-.set-done-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--bg4);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text3);transition:all .2s;margin:0 auto}
-.set-done-btn.done{background:var(--accent);border-color:var(--accent);color:#fff}
-.add-set-row{padding:6px 16px 12px}
-
-/* TIMER */
-.timer-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center}
-.timer-overlay.show{display:flex}
-.timer-card{background:#fff;border-radius:24px;padding:32px 40px;align-items:center;display:flex;flex-direction:column;width:300px;box-shadow:0 20px 40px rgba(0,0,0,.2)}
-.timer-ring{width:180px;height:180px;position:relative;margin-bottom:20px}
-.timer-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
-.timer-track{fill:none;stroke:var(--bg4);stroke-width:8}
-.timer-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .9s linear}
-.timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.timer-num{font-size:52px;font-weight:700;letter-spacing:-2px;color:var(--text)}
-.timer-sec{font-size:13px;color:var(--text3)}
-.timer-label{font-size:14px;color:var(--text3);margin-bottom:20px}
-.timer-btns{display:flex;gap:10px;width:100%}
-.timer-btn{flex:1;background:var(--bg3);border:none;color:var(--text);font-size:15px;font-weight:600;padding:12px;border-radius:12px;cursor:pointer;font-family:inherit}
-.timer-btn.primary{background:var(--accent);color:#fff}
-
-/* MODAL */
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:300;display:none;align-items:flex-end}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:22px 22px 0 0;padding:8px 20px 40px;width:100%;max-height:92vh;overflow-y:auto}
-.modal-handle{width:38px;height:4px;background:var(--bg4);border-radius:2px;margin:10px auto 18px}
-.modal-title{font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text)}
-.input-field{background:var(--bg3);border:1.5px solid transparent;color:var(--text);font-size:16px;padding:13px 14px;border-radius:12px;width:100%;outline:none;margin-bottom:10px;font-family:inherit;transition:border-color .2s}
-.input-field:focus{border-color:var(--accent);background:#fff}
-.input-field::placeholder{color:var(--text3)}
-select.input-field{-webkit-appearance:none}
-.modal-btns{display:flex;flex-direction:column;gap:10px;margin-top:16px}
-
-/* CAT TABS */
-.cat-scroll{overflow-x:auto;scrollbar-width:none}
-.cat-scroll::-webkit-scrollbar{display:none}
-.cat-tabs{display:flex;gap:7px;padding:0 20px;width:max-content}
-.cat-tab{background:var(--bg4);border:none;color:var(--text2);padding:7px 15px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s}
-.cat-tab.active{background:var(--accent);color:#fff}
-
-/* EX ITEM */
-.ex-list-card{background:#fff;border-radius:var(--radius);margin:8px 20px 0;overflow:hidden;box-shadow:var(--shadow)}
-.ex-item{display:flex;align-items:center;padding:13px 16px;border-bottom:.5px solid var(--border);cursor:pointer}
-.ex-item:last-child{border-bottom:none}
-.ex-item-name{font-size:16px;font-weight:500;color:var(--text)}
-.ex-item-cat{font-size:12px;color:var(--text3);margin-top:2px}
-.ex-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--bg4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0;transition:all .2s}
-.ex-check.sel{background:var(--accent);border-color:var(--accent)}
-.select-list{max-height:46vh;overflow-y:auto}
-
+.ex-block{background:var(--card);border-radius:12px;margin:8px 16px;overflow:hidden;box-shadow:var(--shadow)}
+.ex-header{display:flex;align-items:center;padding:12px 12px 8px;gap:8px}
+.drag-handle{color:var(--text2);font-size:20px;cursor:grab;padding:4px;touch-action:none;user-select:none}
+.ex-name{flex:1;font-weight:700;font-size:16px;color:var(--text)}
+.ex-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;color:#fff}
+.badge-super-a{background:var(--purple)}
+.badge-super-b{background:var(--purple);opacity:.82}
+.set-table{width:100%;border-collapse:collapse}
+.set-table th{font-size:12px;color:var(--text2);text-align:center;padding:4px 2px;border-bottom:1px solid var(--sep);font-weight:600}
+.set-row{border-bottom:1px solid var(--sep)}
+.set-row:last-child{border-bottom:none}
+.set-row td{padding:7px 4px;text-align:center;vertical-align:middle}
+.set-row.warmup-row{background:rgba(255,159,10,0.13);border-left:4px solid var(--orange)}
+.set-row.superset-row{border-left:4px solid var(--purple)}
+.set-row.done-row{background:rgba(52,199,89,0.13)}
+.set-num{font-size:14px;font-weight:600;color:var(--text2)}
+.w-badge{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.set-input{width:100%;min-height:44px;border:1px solid var(--sep);border-radius:8px;background:var(--input-bg);color:var(--text);text-align:center;padding:6px 4px;font-size:16px;font-weight:600}
+.set-input:focus{outline:none;border-color:var(--accent)}
+.set-input:disabled{opacity:.6}
+.hint-text{font-size:12px;color:var(--accent);margin-top:3px;font-weight:500}
+.done-btn{width:44px;height:44px;border-radius:10px;border:2px solid var(--sep);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:all .15s;color:var(--text2)}
+.done-btn.checked{background:var(--green);border-color:var(--green);color:#fff}
+.ex-footer{display:flex;gap:8px;padding:8px 12px 12px;flex-wrap:wrap}
 /* HISTORY */
-.history-card{background:#fff;border-radius:var(--radius);margin:0 20px 10px;padding:16px;cursor:pointer;box-shadow:var(--shadow);transition:opacity .15s}
+.history-card{background:var(--card);border-radius:12px;margin:8px 16px;padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:opacity .15s}
 .history-card:active{opacity:.7}
-.history-date{font-size:12px;color:var(--text3);margin-bottom:5px;font-weight:500}
-.history-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:9px}
-.history-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
-.history-tag{background:var(--bg3);font-size:12px;color:var(--text2);padding:4px 10px;border-radius:20px}
-.history-meta{display:flex;gap:14px}
-.history-meta span{font-size:12px;color:var(--text3)}
-
-/* CHART */
-.chart-card{background:#fff;border-radius:var(--radius);margin:0 20px 12px;padding:16px;box-shadow:var(--shadow)}
-.chart-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px}
-
-/* WEEK */
-.week-grid{display:flex;gap:6px}
-.wd{flex:1;text-align:center}
-.wd-label{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:5px}
-.wd-bar{height:6px;border-radius:3px;background:var(--bg4)}
-.wd-bar.trained{background:var(--accent)}
-
-/* EMPTY */
-.empty-state{text-align:center;padding:64px 30px;color:var(--text3)}
-.empty-icon{font-size:44px;margin-bottom:14px}
-.empty-title{font-size:18px;font-weight:700;color:var(--text2);margin-bottom:8px}
-
-/* FINISH BAR */
-.finish-bar{position:fixed;bottom:84px;left:0;right:0;padding:0 20px;z-index:50}
-
-/* PR */
-.pr{background:rgba(0,122,255,.12);color:var(--accent);font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px}
-
-/* DETAIL */
-.detail-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--border);font-size:14px;color:var(--text)}
-.detail-row:last-child{border-bottom:none}
-.detail-set-n{color:var(--text3);width:28px;font-size:12px}
-
-/* DELETE */
-.del-btn{background:none;border:none;color:var(--text3);font-size:17px;cursor:pointer;padding:4px}
+.history-date{font-size:13px;color:var(--text2);margin-bottom:4px}
+.history-name{font-weight:700;font-size:16px;margin-bottom:8px}
+.history-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tag{background:var(--input-bg);color:var(--text2);font-size:11px;padding:2px 8px;border-radius:6px}
+.history-meta{display:flex;gap:12px;font-size:12px;color:var(--text2)}
+/* EXERCISES PAGE */
+.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 16px;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{border:none;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--input-bg);color:var(--text2);transition:all .15s}
+.cat-tab.active{background:var(--accent);color:#fff}
+.ex-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--sep)}
+.ex-row:last-child{border-bottom:none}
+.ex-info{flex:1}
+.ex-row-name{font-weight:600;font-size:15px}
+.muscle-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.muscle-tag{background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;opacity:.8}
+/* STATS */
+.stat-overview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 16px}
+.stat-ov-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.stat-ov-val{font-size:28px;font-weight:700;color:var(--accent)}
+.stat-ov-label{font-size:12px;color:var(--text2);margin-top:2px}
+.pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 16px}
+.pr-card{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+.pr-name{font-size:13px;font-weight:600;margin-bottom:6px}
+.pr-weight{font-size:22px;font-weight:700;color:var(--accent)}
+.pr-1rm{font-size:11px;color:var(--text2);margin-top:2px}
+.chart-wrap{position:relative;height:200px;margin:8px 0 0}
+.chart-ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--text2);font-size:13px;text-align:center;padding:0 16px}
+/* PROFILE */
+.profile-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--sep)}
+.profile-row:last-child{border-bottom:none}
+.profile-label{flex:1;font-size:15px}
+.profile-val{color:var(--text2);font-size:15px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:13px;color:var(--text2);margin-bottom:4px}
+.form-input{width:100%;border:1px solid var(--sep);border-radius:10px;background:var(--input-bg);color:var(--text);padding:10px 12px;font-size:15px}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.form-select{appearance:none;-webkit-appearance:none}
+.toggle-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--sep)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{flex:1;font-size:15px}
+.toggle{position:relative;width:51px;height:31px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--toggle-off);border-radius:16px;cursor:pointer;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+/* MODALS */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:flex-end;transition:opacity .2s}
+.modal-backdrop.hidden{display:none}
+.modal-sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:16px;padding-bottom:calc(env(safe-area-inset-bottom) + 16px)}
+.modal-center{align-items:center;padding:16px}
+.modal-box{background:var(--card);border-radius:16px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto;padding:20px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:16px;text-align:center}
+.modal-handle{width:36px;height:4px;background:var(--sep);border-radius:2px;margin:0 auto 16px}
+/* REST TIMER */
+#rest-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:center;justify-content:center}
+#rest-overlay.hidden{display:none}
+.rest-card{background:var(--card);border-radius:22px;padding:32px 24px;text-align:center;width:290px;max-width:90vw;box-shadow:0 12px 40px rgba(0,0,0,.3);
+  margin-bottom:env(safe-area-inset-bottom)}
+.rest-title{font-size:15px;color:var(--text2);margin-bottom:16px;font-weight:600}
+.rest-svg{display:block;margin:0 auto 16px}
+.rest-time-text{font-size:52px;font-weight:700;margin-bottom:20px}
+.rest-btns{display:flex;gap:10px;justify-content:center}
+.rest-btns .btn{flex:1;min-height:44px;font-size:15px}
+/* WORKOUT HEADER */
+#workout-header{background:var(--card);padding:12px 16px;border-bottom:1px solid var(--sep);position:sticky;top:0;z-index:50}
+#workout-name-input{font-size:18px;font-weight:700;border:none;background:none;color:var(--text);width:100%;outline:none}
+.workout-meta{display:flex;align-items:center;gap:8px;margin-top:4px}
+#elapsed-timer{font-size:14px;color:var(--text2);font-weight:600}
+.date-badge{background:var(--input-bg);border-radius:8px;padding:3px 8px;font-size:12px;color:var(--text2)}
+/* SEARCH */
+.search-wrap{padding:0 16px 8px}
+.search-input{width:100%;border:1px solid var(--sep);border-radius:10px;background:var(--input-bg);color:var(--text);padding:10px 14px;font-size:15px}
+.search-input:focus{outline:none;border-color:var(--accent)}
+/* MISC */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text2)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+.section-title{font-size:20px;font-weight:700}
+.divider{height:1px;background:var(--sep);margin:0 16px}
+.pr-badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px}
+.fab{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));right:20px;width:52px;height:52px;border-radius:26px;background:var(--accent);color:#fff;font-size:24px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,122,255,.4);display:flex;align-items:center;justify-content:center;z-index:90}
+.finish-btn-wrap{padding:12px 16px;background:var(--bg)}
+.meas-card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.meas-date{font-size:13px;color:var(--text2);flex:0 0 80px}
+.meas-vals{flex:1;font-size:13px}
+.day-workouts{padding:8px 16px}
+.day-wo-item{background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:var(--shadow)}
+.suggested-badge{background:var(--orange);color:#fff;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+.chart-select{border:1px solid var(--sep);border-radius:8px;background:var(--input-bg);color:var(--text);padding:6px 10px;font-size:13px;width:100%}
+.no-chart{color:var(--text2);font-size:13px;text-align:center;padding:40px 0}
+@keyframes slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-backdrop:not(.hidden) .modal-sheet{animation:slide-up .25s ease}
+.modal-backdrop.closing{animation:fade-out .2s ease forwards}
+.modal-backdrop.closing .modal-sheet{animation:slide-down .2s ease forwards}
+@keyframes fade-out{to{opacity:0}}
+@keyframes slide-down{to{transform:translateY(100%)}}
+/* L5 iOS polish: softer radius/shadow on cards & sheets */
+.card,.history-card,.ex-block{border-radius:16px}
+.modal-sheet{border-radius:20px 20px 0 0}
+/* TOAST (M4) */
+#toast-wrap{position:fixed;top:calc(env(safe-area-inset-top) + 12px);left:0;right:0;display:flex;justify-content:center;z-index:400;pointer-events:none}
+.toast{background:rgba(30,30,32,0.96);color:#fff;padding:10px 18px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25);animation:toast-in .25s ease;max-width:90%}
+@keyframes toast-in{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+.toast.out{animation:toast-out .3s ease forwards}
+@keyframes toast-out{to{opacity:0;transform:translateY(-14px)}}
+/* ACTION SHEET CONFIRM (M4) */
+.sheet-msg{font-size:15px;color:var(--text);text-align:center;padding:8px 8px 20px;line-height:1.5}
+.sheet-actions{display:flex;flex-direction:column;gap:8px}
+.sheet-actions .btn{width:100%;padding:14px;font-size:16px}
+/* STICKY FINISH BAR (H2) */
+#finish-bar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:60;padding:8px 16px calc(8px);background:linear-gradient(to top,var(--bg) 60%,transparent);display:none;
+  padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right))}
+#finish-bar.show{display:block}
+#finish-bar .btn{width:100%;padding:16px;font-size:17px;box-shadow:0 4px 12px rgba(0,122,255,.3)}
+/* SET COMPLETE FLASH (M5) */
+@keyframes set-flash{0%{background:rgba(52,199,89,0.35)}100%{background:rgba(52,199,89,0.12)}}
+.set-row.flash{animation:set-flash .5s ease}
+.done-btn.pop{animation:done-pop .3s ease}
+@keyframes done-pop{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+/* Type scale + numeric alignment (M1) */
+.stat-val,.stat-ov-val,.pr-weight,#elapsed-timer,#rest-display,.set-input,.history-meta,.meas-vals,.meas-date{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 </style>
 </head>
 <body>
-
-<!-- HOME -->
-<div id="page-home" class="page active">
-  <div class="page-hd">
-    <div class="page-title">訓練</div>
-    <button class="icon-btn" id="btn-new-routine">＋</button>
-  </div>
-  <div class="stats-row" id="home-stats"></div>
-
-  <!-- CALENDAR -->
-  <div class="sec-label">訓練日曆</div>
-  <div class="calendar-wrap" id="calendar-wrap">
-    <div class="cal-header">
-      <button class="cal-nav-btn" id="cal-prev">‹</button>
-      <div class="cal-month" id="cal-month-label"></div>
-      <button class="cal-nav-btn" id="cal-next">›</button>
+<div id="app">
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="page-header">
+      <div class="page-title">訓練</div>
     </div>
-    <div class="cal-days-header" id="cal-day-names"></div>
-    <div class="cal-days" id="cal-days"></div>
-  </div>
-
-  <div class="sec-label">快速開始</div>
-  <div style="padding:0 20px 4px">
-    <button class="btn btn-primary" id="btn-start-empty">開始今日訓練</button>
-  </div>
-
-  <div class="sec-label">我的課表</div>
-  <div id="routine-list"></div>
-</div>
-
-<!-- WORKOUT -->
-<div id="page-workout" class="page">
-  <div class="workout-top">
-    <input class="workout-name-input" id="workout-title" placeholder="訓練名稱">
-    <div class="workout-meta">
-      <div class="workout-elapsed"><span class="active-dot"></span><span id="workout-elapsed">00:00</span></div>
-      <div class="workout-date-badge" id="workout-date-badge"></div>
-      <button class="icon-btn" id="btn-cancel-workout" style="background:rgba(255,59,48,.1);color:var(--red)">✕</button>
+    <!-- Stats -->
+    <div class="stats-row" id="home-stats"></div>
+    <!-- Calendar -->
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev">‹</button>
+        <div id="cal-month-label" style="font-weight:700;font-size:16px"></div>
+        <button class="cal-nav" id="cal-next">›</button>
+      </div>
+      <div class="cal-grid" id="cal-day-names"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <!-- Day workouts -->
+    <div id="day-workout-section" class="hidden"></div>
+    <!-- Suggested -->
+    <div id="suggested-section"></div>
+    <!-- Quick start -->
+    <div class="section-header">
+      <div class="section-title">訓練計畫</div>
+      <button class="btn btn-sm btn-primary" id="btn-add-routine">+ 新增</button>
+    </div>
+    <div id="routine-list" style="padding:0 16px 8px"></div>
+    <div style="padding:8px 16px 16px">
+      <button class="btn btn-primary" style="width:100%;padding:14px" id="btn-quick-start">⚡ 快速開始空白訓練</button>
     </div>
   </div>
-  <div id="workout-exercises" style="padding-bottom:8px"></div>
-  <div style="padding:12px 20px 8px">
-    <button class="btn btn-secondary" id="btn-add-ex">＋ 新增動作</button>
-  </div>
-  <div class="finish-bar">
-    <button class="btn btn-primary" id="btn-finish">完成訓練</button>
-  </div>
-</div>
 
-<!-- HISTORY -->
-<div id="page-history" class="page">
-  <div class="page-hd"><div class="page-title">歷史</div></div>
-  <div id="history-list"></div>
-</div>
-
-<!-- EXERCISES -->
-<div id="page-exercises" class="page">
-  <div class="page-hd">
-    <div class="page-title">動作庫</div>
-    <button class="icon-btn" id="btn-new-ex">＋</button>
+  <!-- WORKOUT PAGE (active session) -->
+  <div class="page" id="page-workout">
+    <div id="workout-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <input id="workout-name-input" placeholder="訓練名稱" aria-label="訓練名稱">
+        <button class="btn btn-sm btn-secondary" style="flex-shrink:0;color:var(--text2)" id="btn-cancel-workout" aria-label="取消訓練">取消</button>
+      </div>
+      <div class="workout-meta">
+        <span id="elapsed-timer" class="tnum">00:00</span>
+        <span class="date-badge tnum" id="workout-date-badge"></span>
+      </div>
+    </div>
+    <div id="exercise-list"></div>
+    <div style="padding:8px 16px">
+      <button class="btn btn-secondary" style="width:100%" id="btn-add-exercise">+ 新增動作</button>
+    </div>
+    <div style="padding:0 16px 96px">
+      <textarea id="workout-notes" class="form-input" rows="3" placeholder="訓練備註..."></textarea>
+    </div>
   </div>
-  <div class="cat-scroll" style="margin-bottom:10px">
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="page-history">
+    <div class="page-header"><div class="page-title">歷史</div></div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- EXERCISES PAGE -->
+  <div class="page" id="page-exercises">
+    <div class="page-header">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="page-title">動作庫</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-secondary" id="btn-reset-ex-lib">重設</button>
+          <button class="btn btn-sm btn-primary" id="btn-add-custom-ex">+ 新增</button>
+        </div>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <input class="search-input" id="ex-search" placeholder="搜尋動作...">
+    </div>
     <div class="cat-tabs" id="ex-cat-tabs"></div>
+    <div class="card" style="padding:0 12px" id="ex-list"></div>
   </div>
-  <div id="ex-list-main"></div>
-</div>
 
-<!-- STATS -->
-<div id="page-stats" class="page">
-  <div class="page-hd"><div class="page-title">統計</div></div>
-  <div id="stats-content"></div>
-</div>
+  <!-- STATS PAGE -->
+  <div class="page" id="page-stats">
+    <div class="page-header"><div class="page-title">統計</div></div>
+    <div class="stat-overview" id="stats-overview"></div>
+    <div class="section-header"><div class="section-title">PR 追蹤</div></div>
+    <div class="pr-grid" id="pr-grid"></div>
+    <div class="card">
+      <div class="card-title">本週肌肉訓練量</div>
+      <div class="chart-wrap"><canvas id="chart-muscle"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">動作進步</div>
+      <select class="chart-select" id="progress-ex-select" style="margin-bottom:8px"></select>
+      <div class="chart-wrap"><canvas id="chart-progress"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">月訓練頻率</div>
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+  </div>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <div class="nav-item active" id="nav-home"><div class="nav-icon">🏋️</div>訓練</div>
-  <div class="nav-item" id="nav-history"><div class="nav-icon">📋</div>歷史</div>
-  <div class="nav-item" id="nav-exercises"><div class="nav-icon">📚</div>動作庫</div>
-  <div class="nav-item" id="nav-stats"><div class="nav-icon">📊</div>統計</div>
-</nav>
-
-<!-- TIMER -->
-<div class="timer-overlay" id="timer-overlay">
-  <div class="timer-card">
-    <div class="timer-label">休息中 — 下一組加油！</div>
-    <div class="timer-ring">
-      <svg width="180" height="180" viewBox="0 0 180 180">
-        <circle class="timer-track" cx="90" cy="90" r="80"/>
-        <circle class="timer-fill" id="timer-fill" cx="90" cy="90" r="80"/>
-      </svg>
-      <div class="timer-center">
-        <div class="timer-num" id="timer-num">90</div>
-        <div class="timer-sec">秒</div>
+  <!-- PROFILE PAGE -->
+  <div class="page" id="page-profile">
+    <div class="page-header"><div class="page-title">個人</div></div>
+    <!-- Personal info -->
+    <div class="card">
+      <div class="card-title">個人資料</div>
+      <div class="form-group">
+        <div class="form-label">身高 (cm)</div>
+        <input class="form-input" id="p-height" type="number" placeholder="170">
+      </div>
+      <div class="form-group">
+        <div class="form-label">出生年</div>
+        <input class="form-input" id="p-birth" type="number" placeholder="1990">
+      </div>
+      <div class="form-group">
+        <div class="form-label">性別</div>
+        <select class="form-input form-select" id="p-gender">
+          <option value="">請選擇</option>
+          <option value="male">男</option>
+          <option value="female">女</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="btn-save-profile">儲存</button>
+    </div>
+    <!-- Measurements -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">身體紀錄</div>
+        <button class="btn btn-sm btn-primary" id="btn-add-meas">+ 新增</button>
+      </div>
+      <div id="meas-list"></div>
+      <div class="chart-wrap" style="margin-top:12px"><canvas id="chart-weight"></canvas></div>
+      <div class="chart-wrap"><canvas id="chart-bf"></canvas></div>
+    </div>
+    <!-- Settings -->
+    <div class="card">
+      <div class="card-title">設定</div>
+      <div class="toggle-row">
+        <span class="toggle-label">深色模式</span>
+        <label class="toggle"><input type="checkbox" id="toggle-dark"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">重量單位</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" id="btn-unit-kg" style="min-width:44px">kg</button>
+          <button class="btn btn-sm" id="btn-unit-lb">lb</button>
+        </div>
+      </div>
+      <div class="toggle-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <span class="toggle-label">休息時間（秒）</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="form-input" id="rest-time-input" type="number" style="width:80px" placeholder="90">
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px">
+            <input type="checkbox" id="no-rest-check"> 無休息
+          </label>
+        </div>
+      </div>
+      <div class="toggle-row" style="flex-direction:column;align-items:flex-start;gap:8px;border-bottom:none">
+        <span class="toggle-label">PR追蹤動作（最多6個）</span>
+        <div id="tracked-ex-list" style="display:flex;flex-wrap:wrap;gap:6px;width:100%"></div>
+        <button class="btn btn-sm btn-secondary" id="btn-edit-tracked">編輯</button>
       </div>
     </div>
-    <div class="timer-btns">
-      <button class="timer-btn" id="btn-t-minus">−15s</button>
-      <button class="timer-btn primary" id="btn-t-skip">跳過</button>
-      <button class="timer-btn" id="btn-t-plus">＋30s</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: NEW/EDIT ROUTINE -->
-<div class="modal-overlay" id="modal-routine">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-routine-title">建立課表</div>
-    <input class="input-field" id="routine-name-input" placeholder="課表名稱（例如：胸日）">
-    <div style="font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">選擇動作</div>
-    <div class="cat-scroll" style="margin:0 -20px 10px"><div class="cat-tabs" id="routine-cat-tabs" style="padding:0 20px"></div></div>
-    <div class="select-list" id="routine-ex-sel"></div>
-    <div class="modal-btns">
-      <button class="btn btn-primary" id="btn-save-routine">儲存課表</button>
-      <button class="btn btn-secondary" id="btn-del-routine" style="display:none;color:var(--red)">刪除課表</button>
-      <button class="btn btn-secondary" id="btn-cancel-routine">取消</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: NEW EXERCISE -->
-<div class="modal-overlay" id="modal-new-ex">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">新增動作</div>
-    <input class="input-field" id="new-ex-name" placeholder="動作名稱">
-    <select class="input-field" id="new-ex-cat"><option value="">選擇分類</option></select>
-    <div class="modal-btns">
-      <button class="btn btn-primary" id="btn-save-ex">新增</button>
-      <button class="btn btn-secondary" id="btn-cancel-new-ex">取消</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: ADD EX TO WORKOUT -->
-<div class="modal-overlay" id="modal-add-ex">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="modal-title" style="margin:0">新增動作</div>
-      <button class="btn-text" id="btn-show-create-ex" style="font-size:15px">＋ 自訂動作</button>
-    </div>
-    <!-- 自訂動作表單（預設隱藏） -->
-    <div id="create-ex-form" style="display:none;background:var(--bg3);border-radius:13px;padding:14px;margin-bottom:14px">
-      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px">建立自訂動作</div>
-      <input class="input-field" id="inline-ex-name" placeholder="動作名稱" style="margin-bottom:8px">
-      <select class="input-field" id="inline-ex-cat" style="margin-bottom:10px"><option value="">選擇分類</option></select>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" id="btn-inline-save-ex">新增並加入</button>
-        <button class="btn btn-secondary btn-sm" id="btn-inline-cancel-ex">取消</button>
+    <!-- Data management -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">資料管理</div>
+      <div style="margin-bottom:16px">
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-bottom:6px" id="btn-export">📤 匯出備份</button>
+        <div style="font-size:12px;color:var(--text2);text-align:center">下載包含所有訓練、課表、個人資料的 JSON 檔案</div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="btn btn-secondary" style="cursor:pointer;width:100%;padding:14px;font-size:15px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px">
+          📥 匯入備份<input type="file" accept=".json" id="import-file" style="display:none">
+        </label>
+        <div style="font-size:12px;color:var(--text2);text-align:center">選擇先前匯出的 JSON 檔案還原資料</div>
+      </div>
+      <div style="border-top:1px solid var(--sep);padding-top:12px">
+        <button class="btn btn-secondary" style="width:100%" id="btn-share-last">🖼 分享最近訓練摘要</button>
       </div>
     </div>
-    <div class="cat-scroll" style="margin:0 -20px 10px"><div class="cat-tabs" id="add-ex-cat-tabs" style="padding:0 20px"></div></div>
-    <div class="select-list" id="add-ex-list"></div>
-    <div class="modal-btns">
-      <button class="btn btn-primary" id="btn-confirm-add">加入選取動作</button>
-      <button class="btn btn-secondary" id="btn-cancel-add">取消</button>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav" role="tablist" aria-label="主導覽">
+    <button class="nav-btn" data-page="history" role="tab" aria-label="歷史">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      歷史
+    </button>
+    <button class="nav-btn" data-page="exercises" role="tab" aria-label="動作">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      動作
+    </button>
+    <button class="nav-center active" data-page="home" role="tab" aria-label="訓練">
+      <span class="nav-center-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 8.5v7M4 10v3M9 7.5v9M15 7.5v9M17.5 8.5v7M20 10v3M9 12h6"/></svg>
+      </span>
+      訓練
+    </button>
+    <button class="nav-btn" data-page="stats" role="tab" aria-label="統計">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>
+      統計
+    </button>
+    <button class="nav-btn" data-page="profile" role="tab" aria-label="個人">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      個人
+    </button>
+  </nav>
+</div>
+
+<!-- STICKY FINISH BAR (shown only during active workout) -->
+<div id="finish-bar">
+  <button class="btn btn-primary" id="btn-finish-workout">完成訓練 ✓</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap"></div>
+
+<!-- CONFIRM ACTION SHEET -->
+<div class="modal-backdrop hidden" id="confirm-sheet">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="sheet-msg" id="confirm-msg"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-red" id="confirm-ok">確定</button>
+      <button class="btn btn-secondary" id="confirm-cancel">取消</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: DAY PICKER (from calendar) -->
-<div class="modal-overlay" id="modal-day">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-day-title"></div>
-    <div id="modal-day-workouts"></div>
-    <div class="modal-btns" id="modal-day-btns"></div>
-  </div>
-</div>
-
-<!-- MODAL: SELECT ROUTINE FOR DATE -->
-<div class="modal-overlay" id="modal-pick-routine">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">選擇課表</div>
-    <div id="pick-routine-list"></div>
-    <div class="modal-btns">
-      <button class="btn btn-primary" id="btn-pick-empty">空白訓練</button>
-      <button class="btn btn-secondary" id="btn-cancel-pick">取消</button>
+<!-- REST TIMER OVERLAY -->
+<div id="rest-overlay" class="hidden">
+  <div class="rest-card">
+    <div class="rest-title">休息中</div>
+    <svg class="rest-svg" width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="52" fill="none" stroke="var(--sep)" stroke-width="8"/>
+      <circle id="rest-arc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="8"
+        stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"
+        transform="rotate(-90 60 60)"/>
+    </svg>
+    <div class="rest-time-text tnum" id="rest-display">1:30</div>
+    <div class="rest-btns">
+      <button class="btn btn-secondary" id="rest-minus" aria-label="減少15秒">−15s</button>
+      <button class="btn btn-secondary" id="rest-plus" aria-label="增加30秒">+30s</button>
+      <button class="btn btn-primary" id="rest-skip" aria-label="跳過休息">跳過</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: WORKOUT DETAIL -->
-<div class="modal-overlay" id="modal-detail">
-  <div class="modal">
+<!-- MODAL: Add Exercise to Workout -->
+<div class="modal-backdrop hidden" id="modal-add-ex">
+  <div class="modal-sheet" style="max-height:80vh">
     <div class="modal-handle"></div>
-    <div id="detail-content"></div>
-    <div class="modal-btns">
-      <button class="btn btn-secondary" id="btn-close-detail">關閉</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:18px;font-weight:700">新增動作</div>
+      <button class="btn btn-sm btn-secondary" id="modal-add-ex-close">✕</button>
+    </div>
+    <div style="margin-bottom:8px">
+      <input class="search-input" id="modal-ex-search" placeholder="搜尋動作...">
+    </div>
+    <div class="cat-tabs" id="modal-ex-cat-tabs" style="padding:0 0 8px"></div>
+    <div id="modal-ex-list" style="max-height:50vh;overflow-y:auto"></div>
+    <div style="margin-top:12px">
+      <button class="btn btn-secondary" style="width:100%" id="btn-quick-create-ex">+ 快速建立自訂動作</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: PROGRESS -->
-<div class="modal-overlay" id="modal-progress">
-  <div class="modal">
+<!-- MODAL: History Detail -->
+<div class="modal-backdrop hidden" id="modal-history-detail">
+  <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div id="progress-content"></div>
-    <div class="modal-btns">
-      <button class="btn btn-secondary" id="btn-close-progress">關閉</button>
+    <div id="history-detail-content"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" style="flex:1" id="modal-history-close">關閉</button>
+      <button class="btn btn-red" style="flex:1" id="btn-delete-workout">刪除</button>
     </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<!-- MODAL: Add/Edit Routine -->
+<div class="modal-backdrop hidden" id="modal-routine">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="routine-modal-title">新增訓練計畫</div>
+    <div class="form-group">
+      <div class="form-label">計畫名稱</div>
+      <input class="form-input" id="routine-name-input" placeholder="例：胸背日">
+    </div>
+    <div class="form-group">
+      <div class="form-label">選擇動作</div>
+      <div class="cat-tabs" id="routine-cat-tabs" style="padding:0 0 8px"></div>
+      <div id="routine-ex-list" style="max-height:40vh;overflow-y:auto;border:1px solid var(--sep);border-radius:10px;padding:4px"></div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div class="form-label" style="margin-bottom:4px">已選動作</div>
+      <div id="routine-selected-list" style="display:flex;flex-wrap:wrap;gap:4px;min-height:32px;border:1px solid var(--sep);border-radius:10px;padding:6px"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-secondary" style="flex:1" id="routine-cancel">取消</button>
+      <button class="btn btn-primary" style="flex:1" id="routine-save">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Custom Exercise -->
+<div class="modal-backdrop hidden" id="modal-custom-ex">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">新增自訂動作</div>
+    <div class="form-group">
+      <div class="form-label">動作名稱</div>
+      <input class="form-input" id="custom-ex-name" placeholder="動作名稱">
+    </div>
+    <div class="form-group">
+      <div class="form-label">類別</div>
+      <select class="form-input form-select" id="custom-ex-cat"></select>
+    </div>
+    <div class="form-group">
+      <div class="form-label">肌肉群（逗號分隔）</div>
+      <input class="form-input" id="custom-ex-muscles" placeholder="例：胸大肌,三頭肌">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" id="custom-ex-cancel">取消</button>
+      <button class="btn btn-primary" style="flex:1" id="custom-ex-save">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Measurement -->
+<div class="modal-backdrop hidden" id="modal-measurement">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">新增身體紀錄</div>
+    <div class="form-group">
+      <div class="form-label">日期</div>
+      <input class="form-input" id="meas-date" type="date">
+    </div>
+    <div class="form-group">
+      <div class="form-label" id="meas-weight-label">體重 (kg)</div>
+      <input class="form-input" id="meas-weight" type="number" step="0.1" inputmode="decimal" placeholder="70.0">
+    </div>
+    <div class="form-group">
+      <div class="form-label">體脂率 (%)</div>
+      <input class="form-input" id="meas-bf" type="number" step="0.1" inputmode="decimal" placeholder="20.0">
+    </div>
+    <div class="form-group">
+      <div class="form-label" id="meas-sm-label">骨骼肌 (kg)</div>
+      <input class="form-input" id="meas-sm" type="number" step="0.1" inputmode="decimal" placeholder="30.0">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" id="meas-cancel">取消</button>
+      <button class="btn btn-primary" style="flex:1" id="meas-save">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Tracked Exercises -->
+<div class="modal-backdrop hidden" id="modal-tracked">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">選擇追蹤動作（最多6個）</div>
+    <div id="tracked-picker" style="max-height:60vh;overflow-y:auto"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" id="tracked-done">完成</button>
+  </div>
+</div>
+
+<!-- MODAL: Exercise Progress -->
+<div class="modal-backdrop hidden" id="modal-ex-progress">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:18px;font-weight:700" id="ex-progress-title">動作進步</div>
+      <button class="btn btn-sm btn-secondary" id="ex-progress-close">✕</button>
+    </div>
+    <div class="chart-wrap" style="height:250px"><canvas id="chart-ex-progress-modal"></canvas></div>
+  </div>
+</div>
+
+<!-- MODAL: Finish Workout Summary -->
+<div class="modal-backdrop hidden" id="modal-finish">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">訓練完成 🎉</div>
+    <div id="finish-summary" style="margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" id="finish-share">🖼 分享</button>
+      <button class="btn btn-primary" style="flex:1" id="finish-done">完成</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="share-canvas" style="display:none"></canvas>
+
 <script>
-// ─── DATA ───────────────────────────────────────────────────
+// ===================== DATA =====================
 const CATS = ['胸部','背部','腿部','肩部','手臂','核心','有氧','其他'];
-const DEFAULT_EX = [
-  {id:'e1',name:'臥推',cat:'胸部'},{id:'e2',name:'上斜臥推',cat:'胸部'},{id:'e3',name:'啞鈴飛鳥',cat:'胸部'},{id:'e4',name:'下斜臥推',cat:'胸部'},{id:'e5',name:'蝴蝶機夾胸',cat:'胸部'},
-  {id:'e6',name:'引體向上',cat:'背部'},{id:'e7',name:'槓鈴划船',cat:'背部'},{id:'e8',name:'滑輪下拉',cat:'背部'},{id:'e9',name:'硬舉',cat:'背部'},{id:'e10',name:'坐姿划船',cat:'背部'},
-  {id:'e11',name:'深蹲',cat:'腿部'},{id:'e12',name:'腿推機',cat:'腿部'},{id:'e13',name:'羅馬尼亞硬舉',cat:'腿部'},{id:'e14',name:'腿彎舉',cat:'腿部'},{id:'e15',name:'腿伸展',cat:'腿部'},{id:'e16',name:'臀推',cat:'腿部'},
-  {id:'e17',name:'肩推',cat:'肩部'},{id:'e18',name:'側平舉',cat:'肩部'},{id:'e19',name:'前平舉',cat:'肩部'},{id:'e20',name:'後三角',cat:'肩部'},
-  {id:'e21',name:'二頭彎舉',cat:'手臂'},{id:'e22',name:'三頭下推',cat:'手臂'},{id:'e23',name:'錘式彎舉',cat:'手臂'},{id:'e24',name:'窄握臥推',cat:'手臂'},
-  {id:'e25',name:'捲腹',cat:'核心'},{id:'e26',name:'平板支撐',cat:'核心'},{id:'e27',name:'懸掛舉腿',cat:'核心'},
-  {id:'e28',name:'跑步機',cat:'有氧'},{id:'e29',name:'騎腳踏車',cat:'有氧'},
+const DEFAULT_EXERCISES = [
+  {id:'e1',name:'臥推',cat:'胸部',muscles:['胸大肌','三頭肌','前三角'],custom:false},
+  {id:'e2',name:'上斜臥推',cat:'胸部',muscles:['上胸','三頭肌','前三角'],custom:false},
+  {id:'e3',name:'飛鳥',cat:'胸部',muscles:['胸大肌'],custom:false},
+  {id:'e24',name:'啞鈴臥推',cat:'胸部',muscles:['胸大肌','三頭肌'],custom:false},
+  {id:'e4',name:'引體向上',cat:'背部',muscles:['背闊肌','二頭肌','後三角'],custom:false},
+  {id:'e5',name:'槓鈴划船',cat:'背部',muscles:['背闊肌','菱形肌','後三角'],custom:false},
+  {id:'e6',name:'滑輪下拉',cat:'背部',muscles:['背闊肌','二頭肌'],custom:false},
+  {id:'e25',name:'坐姿划船',cat:'背部',muscles:['背闊肌','菱形肌'],custom:false},
+  {id:'e7',name:'深蹲',cat:'腿部',muscles:['股四頭肌','臀大肌','大腿後側'],custom:false},
+  {id:'e8',name:'硬舉',cat:'腿部',muscles:['大腿後側','臀大肌','豎脊肌'],custom:false},
+  {id:'e9',name:'腿推',cat:'腿部',muscles:['股四頭肌','臀大肌'],custom:false},
+  {id:'e10',name:'弓步蹲',cat:'腿部',muscles:['股四頭肌','臀大肌'],custom:false},
+  {id:'e26',name:'腿彎舉',cat:'腿部',muscles:['大腿後側'],custom:false},
+  {id:'e27',name:'小腿提踵',cat:'腿部',muscles:['腓腸肌','比目魚肌'],custom:false},
+  {id:'e11',name:'肩推',cat:'肩部',muscles:['三角肌','三頭肌'],custom:false},
+  {id:'e12',name:'側平舉',cat:'肩部',muscles:['側三角'],custom:false},
+  {id:'e13',name:'前平舉',cat:'肩部',muscles:['前三角'],custom:false},
+  {id:'e28',name:'啞鈴肩推',cat:'肩部',muscles:['三角肌','三頭肌'],custom:false},
+  {id:'e29',name:'後三角飛鳥',cat:'肩部',muscles:['後三角','菱形肌'],custom:false},
+  {id:'e14',name:'二頭彎舉',cat:'手臂',muscles:['二頭肌'],custom:false},
+  {id:'e15',name:'錘式彎舉',cat:'手臂',muscles:['二頭肌','肱橈肌'],custom:false},
+  {id:'e16',name:'三頭下壓',cat:'手臂',muscles:['三頭肌'],custom:false},
+  {id:'e17',name:'窄距臥推',cat:'手臂',muscles:['三頭肌','胸大肌'],custom:false},
+  {id:'e18',name:'捲腹',cat:'核心',muscles:['腹直肌'],custom:false},
+  {id:'e19',name:'平板支撐',cat:'核心',muscles:['核心','腹直肌'],custom:false},
+  {id:'e20',name:'俄羅斯轉體',cat:'核心',muscles:['腹斜肌'],custom:false},
+  {id:'e21',name:'跑步機',cat:'有氧',muscles:[],custom:false},
+  {id:'e22',name:'騎自行車',cat:'有氧',muscles:[],custom:false},
+  {id:'e23',name:'跳繩',cat:'有氧',muscles:[],custom:false}
 ];
 
-function dbLoad(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
-function dbSave(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function ls(k){try{return JSON.parse(localStorage.getItem(k))}catch{return null}}
+function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
-let exercises = dbLoad('ex', DEFAULT_EX);
-let routines  = dbLoad('rt', []);
-let workouts  = dbLoad('wk', []);
-
-// ─── MISC STATE ─────────────────────────────────────────────
-let currentWorkout = null;
-let workoutStartTime = null;
-let workoutTimerID = null;
-let restTimerID = null, restRemain = 90, restTotal = 90;
-const REST_DEF = 90;
-const CIRC = 2 * Math.PI * 80;
-
-let routineCat = '全部', exCat = '全部', addExCat = '全部';
-let selExTemp = [];
-let editRoutineId = null;
-let calYear, calMonth;
-let pendingDate = null; // for backdated workout
-
-// ─── HELPERS ────────────────────────────────────────────────
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtTime(s){const m=Math.floor(s/60),sec=s%60;return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
-function isoDate(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
-function pad(n){return String(n).padStart(2,'0');}
-function fmtDateLabel(isoStr){const d=new Date(isoStr+'T00:00:00');const dn=['日','一','二','三','四','五','六'];return `${d.getMonth()+1}月${d.getDate()}日（${dn[d.getDay()]}）`;}
-
-// ─── NAV ────────────────────────────────────────────────────
-function navTo(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const pe=document.getElementById('page-'+page); if(pe) pe.classList.add('active');
-  const ne=document.getElementById('nav-'+page); if(ne) ne.classList.add('active');
-  if(page==='home')      renderHome();
-  if(page==='history')   renderHistory();
-  if(page==='exercises') renderExercises();
-  if(page==='stats')     renderStats();
-  if(page==='workout')   renderWorkout();
+function getSettings(){
+  const def={unit:'kg',theme:'light',restTime:90,trackedExercises:['e7','e1','e8'],weekPlan:{},statCards:['totalWorkouts','sbdTotal','monthVolume']};
+  const s=ls('settings');
+  if(!s)return def;
+  if(!s.statCards)s.statCards=def.statCards;
+  return s;
 }
-['home','history','exercises','stats'].forEach(p=>
-  document.getElementById('nav-'+p).addEventListener('click',()=>navTo(p))
-);
-
-// ─── MODAL ──────────────────────────────────────────────────
-function showModal(id){document.getElementById(id).classList.add('show');}
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-['modal-routine','modal-new-ex','modal-add-ex','modal-day','modal-pick-routine','modal-detail','modal-progress'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeModal(id);});
-});
-
-// ─── CALENDAR ───────────────────────────────────────────────
-function initCal(){
-  const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth();
-  const dn=['日','一','二','三','四','五','六'];
-  document.getElementById('cal-day-names').innerHTML=dn.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
-  document.getElementById('cal-prev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();});
-  document.getElementById('cal-next').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();});
-  renderCal();
+function saveSettings(s){ss('settings',s)}
+function getProfile(){return ls('profile')||{height:null,birthYear:null,gender:null}}
+function saveProfile(p){ss('profile',p)}
+function getMeasurements(){return ls('measurements')||[]}
+function saveMeasurements(m){ss('measurements',m)}
+function getExercises(){
+  let ex=ls('exercises');
+  if(!ex){ex=DEFAULT_EXERCISES;ss('exercises',ex)}
+  return ex;
 }
+function saveExercises(e){ss('exercises',e)}
+function getRoutines(){return ls('routines')||[]}
+function saveRoutines(r){ss('routines',r)}
+function getWorkouts(){return ls('workouts')||[]}
+function saveWorkouts(w){ss('workouts',w)}
 
-function renderCal(){
-  const monthNames=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  document.getElementById('cal-month-label').textContent=`${calYear} 年 ${monthNames[calMonth]}`;
-  const today=isoDate(new Date());
-  const trainedDates=new Set(workouts.map(w=>w.date.slice(0,10)));
-  const firstDay=new Date(calYear,calMonth,1).getDay();
-  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-  const prevDays=new Date(calYear,calMonth,0).getDate();
-  let html='';
-  // prev month filler
-  for(let i=firstDay-1;i>=0;i--){
-    html+=`<div class="cal-day other-month">${prevDays-i}</div>`;
-  }
-  for(let d=1;d<=daysInMonth;d++){
-    const iso=`${calYear}-${pad(calMonth+1)}-${pad(d)}`;
-    const isToday=iso===today;
-    const trained=trainedDates.has(iso);
-    let cls='cal-day';
-    if(trained) cls+=' trained';
-    else if(isToday) cls+=' today';
-    html+=`<div class="${cls}" data-date="${iso}">${d}</div>`;
-  }
-  const remaining=(7-((firstDay+daysInMonth)%7))%7;
-  for(let d=1;d<=remaining;d++) html+=`<div class="cal-day other-month">${d}</div>`;
-  const container=document.getElementById('cal-days');
-  container.innerHTML=html;
-  container.querySelectorAll('.cal-day[data-date]').forEach(el=>
-    el.addEventListener('click',()=>openDayModal(el.dataset.date))
-  );
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function toKg(v,unit){return unit==='lb'?v/2.20462:v}
+function fromKg(kg,unit){return unit==='lb'?kg*2.20462:kg}
+function displayW(kg,unit){
+  unit=unit||(getSettings().unit);
+  if(unit==='lb'){const lb=kg*2.20462;return Math.round(lb*2)/2}
+  return Math.round(kg*10)/10;
 }
+function oneRM(w,r){return r>1?w*(1+r/30):w}
+function fmtDate(d){const dt=new Date(d);return dt.toLocaleDateString('zh-TW',{month:'long',day:'numeric',weekday:'short'})}
+function fmtDur(s){const m=Math.floor(s/60),sec=s%60;return`${m}分${sec>0?sec+'秒':''}`}
+function today(){return new Date().toISOString().slice(0,10)}
 
-function openDayModal(dateIso){
-  const label=fmtDateLabel(dateIso);
-  document.getElementById('modal-day-title').textContent=label;
-  const dayWorkouts=workouts.filter(w=>w.date.slice(0,10)===dateIso);
-  const isToday=dateIso===isoDate(new Date());
-  const isFuture=dateIso>isoDate(new Date());
-
-  let html='';
-  if(dayWorkouts.length){
-    html=dayWorkouts.map(w=>`<div class="history-card" style="margin:0 0 10px;box-shadow:none;border:.5px solid var(--border)" data-wid="${w.id}">
-      <div class="history-name" style="font-size:16px">${esc(w.routineName)}</div>
-      <div class="history-meta" style="margin-top:6px">
-        <span>⏱ ${fmtTime(w.duration||0)}</span>
-        <span>${w.exercises.reduce((s,e)=>s+e.sets.filter(s=>s.done).length,0)} 組</span>
-      </div>
-    </div>`).join('');
-  } else {
-    html=`<div style="color:var(--text3);font-size:14px;padding:16px 0 8px">${isFuture?'未來日期，無法新增訓練':'這天還沒有訓練紀錄'}</div>`;
-  }
-  document.getElementById('modal-day-workouts').innerHTML=html;
-
-  // Bind detail click
-  document.getElementById('modal-day-workouts').querySelectorAll('.history-card').forEach(c=>
-    c.addEventListener('click',()=>{ closeModal('modal-day'); showWorkoutDetail(c.dataset.wid); })
-  );
-
-  const btnsEl=document.getElementById('modal-day-btns');
-  if(!isFuture){
-    btnsEl.innerHTML=`<button class="btn btn-primary" id="btn-day-add">在這天新增訓練</button><button class="btn btn-secondary" id="btn-day-close">關閉</button>`;
-    document.getElementById('btn-day-add').addEventListener('click',()=>{
-      closeModal('modal-day');
-      pendingDate=dateIso;
-      openPickRoutine();
+// ===================== FEEDBACK (toast / haptic / beep) =====================
+let _toastTimer=null;
+function toast(msg){
+  const wrap=document.getElementById('toast-wrap');
+  if(!wrap)return;
+  wrap.innerHTML=`<div class="toast">${msg}</div>`;
+  const el=wrap.firstChild;
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{
+    el.classList.add('out');
+    el.addEventListener('animationend',()=>{if(wrap.contains(el))wrap.innerHTML='';},{once:true});
+  },1800);
+}
+function haptic(pattern){try{navigator.vibrate&&navigator.vibrate(pattern);}catch(e){}}
+let _audioCtx=null;
+function beep(){
+  try{
+    _audioCtx=_audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const ctx=_audioCtx;
+    if(ctx.state==='suspended')ctx.resume();
+    const now=ctx.currentTime;
+    [0,0.18].forEach(offset=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.type='sine';osc.frequency.value=880;
+      gain.gain.setValueAtTime(0.001,now+offset);
+      gain.gain.exponentialRampToValueAtTime(0.3,now+offset+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001,now+offset+0.15);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(now+offset);osc.stop(now+offset+0.16);
     });
-    document.getElementById('btn-day-close').addEventListener('click',()=>closeModal('modal-day'));
-  } else {
-    btnsEl.innerHTML=`<button class="btn btn-secondary" id="btn-day-close">關閉</button>`;
-    document.getElementById('btn-day-close').addEventListener('click',()=>closeModal('modal-day'));
-  }
-  showModal('modal-day');
+  }catch(e){}
 }
 
-function openPickRoutine(){
-  const list=document.getElementById('pick-routine-list');
-  if(!routines.length){
-    list.innerHTML=`<div style="color:var(--text3);font-size:14px;padding:8px 0 16px">還沒有課表，選擇空白訓練</div>`;
-  } else {
-    list.innerHTML=routines.map(r=>`<div class="list-row" style="cursor:pointer" data-rid="${r.id}">
-      <div style="flex:1">
-        <div style="font-size:16px;font-weight:600">${esc(r.name)}</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px">${r.exerciseIds.length} 個動作</div>
-      </div>
-      <span style="color:var(--accent);font-size:20px">›</span>
-    </div>`).join('');
-    list.querySelectorAll('.list-row').forEach(row=>
-      row.addEventListener('click',()=>{ closeModal('modal-pick-routine'); startWorkout(row.dataset.rid,pendingDate); })
-    );
-  }
-  document.getElementById('btn-pick-empty').onclick=()=>{ closeModal('modal-pick-routine'); startWorkout(null,pendingDate); };
-  document.getElementById('btn-cancel-pick').onclick=()=>closeModal('modal-pick-routine');
-  showModal('modal-pick-routine');
+// Rest-end phone notification (works when the tab is backgrounded / screen off after install)
+function requestNotifyPermission(){
+  try{
+    if('Notification' in window && Notification.permission==='default'){
+      Notification.requestPermission();
+    }
+  }catch(e){}
+}
+function notify(title,body){
+  try{
+    if('Notification' in window && Notification.permission==='granted'){
+      const n=new Notification(title,{body:body||'',tag:'rest-timer',renotify:true,silent:false});
+      setTimeout(()=>{try{n.close();}catch(e){}},8000);
+    }
+  }catch(e){}
+}
+// Tab-title rest countdown (visible on the browser tab when you switch apps)
+const _baseTitle='健身紀錄';
+function setTitleCountdown(sec){
+  const m=Math.floor(sec/60),s=sec%60;
+  document.title=`⏱ ${m}:${String(s).padStart(2,'0')} 休息中`;
+}
+function restoreTitle(){document.title=_baseTitle;}
+
+// ===================== THEME =====================
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const s=getSettings();s.theme=t;saveSettings(s);
+  document.getElementById('toggle-dark').checked=(t==='dark');
+  initChartTheme();
+  rerenderVisibleCharts();
+}
+function initTheme(){applyTheme(getSettings().theme)}
+// Re-draw whichever charts are on the currently visible page (theme/unit change)
+function rerenderVisibleCharts(){
+  if(typeof Chart==='undefined')return;
+  if(currentPage==='stats'){renderMusclChart();renderProgressChart();renderMonthlyChart();}
+  if(currentPage==='profile')renderBodyCharts();
 }
 
-// ─── HOME ────────────────────────────────────────────────────
-function renderHome(){
-  const now=new Date();
-  const weekDates=getWeekDates(now);
-  const m=now.getMonth(), y=now.getFullYear();
-  const wc=workouts.filter(w=>weekDates.includes(w.date.slice(0,10))).length;
-  const mc=workouts.filter(w=>{const d=new Date(w.date);return d.getMonth()===m&&d.getFullYear()===y;}).length;
-  document.getElementById('home-stats').innerHTML=`
-    <div class="stat-card"><div class="stat-num">${wc}</div><div class="stat-label">本週次數</div></div>
-    <div class="stat-card"><div class="stat-num">${mc}</div><div class="stat-label">本月次數</div></div>
-    <div class="stat-card"><div class="stat-num">${workouts.length}</div><div class="stat-label">累計次數</div></div>
-  `;
-  renderCal();
-  const list=document.getElementById('routine-list');
-  if(!routines.length){
-    list.innerHTML=`<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">還沒有課表</div><div>點右上角 ＋ 建立課表</div></div>`;
+// ===================== PWA =====================
+function initPWA(){
+  // Generate icon
+  const ic=document.createElement('canvas');ic.width=192;ic.height=192;
+  const cx=ic.getContext('2d');
+  cx.fillStyle='#007aff';
+  const r=32;cx.beginPath();cx.moveTo(r,0);cx.lineTo(192-r,0);cx.quadraticCurveTo(192,0,192,r);
+  cx.lineTo(192,192-r);cx.quadraticCurveTo(192,192,192-r,192);cx.lineTo(r,192);
+  cx.quadraticCurveTo(0,192,0,192-r);cx.lineTo(0,r);cx.quadraticCurveTo(0,0,r,0);cx.closePath();cx.fill();
+  cx.fillStyle='#fff';cx.font='bold 120px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💪',96,100);
+  const iconUrl=ic.toDataURL();
+  const manifest={name:'健身紀錄',short_name:'健身',start_url:'./',display:'standalone',background_color:'#f2f2f7',theme_color:'#007aff',icons:[{src:iconUrl,sizes:'192x192',type:'image/png'}]};
+  const mblob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const murl=URL.createObjectURL(mblob);
+  const link=document.createElement('link');link.rel='manifest';link.href=murl;document.head.appendChild(link);
+  const appleIcon=document.createElement('link');appleIcon.rel='apple-touch-icon';appleIcon.href=iconUrl;document.head.appendChild(appleIcon);
+  // SW — NETWORK-FIRST (fall back to cache only when offline) so updates are
+  // always picked up; the cache is just an offline safety net. Avoids the
+  // cache-first trap where users get stuck on a stale version.
+  const swCode=`
+const C='fit-v1';
+self.addEventListener('install',e=>self.skipWaiting());
+self.addEventListener('activate',e=>self.clients.claim());
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  e.respondWith(
+    fetch(e.request).then(res=>{
+      if(res&&res.status===200&&e.request.url.startsWith('http')){
+        const clone=res.clone();
+        caches.open(C).then(cache=>cache.put(e.request,clone));
+      }
+      return res;
+    }).catch(()=>caches.open(C).then(cache=>cache.match(e.request)))
+  );
+});`;
+  const swBlob=new Blob([swCode],{type:'text/javascript'});
+  const swUrl=URL.createObjectURL(swBlob);
+  if('serviceWorker' in navigator){navigator.serviceWorker.register(swUrl).catch(()=>{})}
+}
+
+// ===================== NAV =====================
+let currentPage='home';
+function setNavActive(name){
+  document.querySelectorAll('.nav-btn, .nav-center').forEach(b=>{
+    const on=b.dataset.page===name;
+    b.classList.toggle('active',on);
+    b.setAttribute('aria-selected',on?'true':'false');
+  });
+}
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  setNavActive(name);
+  // If workout in progress and going home, show active workout page
+  if(name==='home'&&currentWorkout){
+    document.getElementById('page-workout').classList.add('active');
+    currentPage='home';
     return;
   }
-  list.innerHTML=`<div class="routine-wrap">`+routines.map(r=>{
-    const names=r.exerciseIds.map(id=>(exercises.find(e=>e.id===id)||{}).name).filter(Boolean);
-    const preview=names.slice(0,3).join(' · ')+(names.length>3?` +${names.length-3}`:'');
-    return `<div class="routine-card">
-      <div class="routine-top">
-        <div style="flex:1;min-width:0">
-          <div class="routine-title">${esc(r.name)}</div>
-          <div class="routine-sub">${r.exerciseIds.length} 個動作 · ${esc(preview)}</div>
-        </div>
-        <div class="routine-btns">
-          <button class="btn btn-sm btn-secondary edit-rt" data-rid="${r.id}">編輯</button>
-          <button class="btn btn-sm btn-primary start-rt" data-rid="${r.id}">開始</button>
-        </div>
-      </div>
+  const pg=document.getElementById('page-'+name);
+  if(pg){pg.classList.add('active');pg.scrollTop=0;}
+  currentPage=name;
+  if(name==='home')renderHome();
+  if(name==='history')renderHistory();
+  if(name==='exercises')renderExercises();
+  if(name==='stats')renderStats();
+  if(name==='profile')renderProfile();
+}
+document.querySelectorAll('.nav-btn, .nav-center').forEach(b=>{
+  b.addEventListener('click',()=>{navigator.vibrate&&navigator.vibrate(10);showPage(b.dataset.page);});
+});
+
+// ===================== CALENDAR =====================
+let calDate=new Date();
+let selectedDate=null;
+function renderCalendar(){
+  const workouts=getWorkouts();
+  const workedDays=new Set(workouts.map(w=>w.date));
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  document.getElementById('cal-month-label').textContent=`${y}年${m+1}月`;
+  const dayNames=document.getElementById('cal-day-names');
+  dayNames.innerHTML=['日','一','二','三','四','五','六'].map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  const todayStr=today();
+  let html='';
+  for(let i=0;i<first;i++){
+    const pd=new Date(y,m,-(first-1)+i+1-(first));
+    const prevDay=new Date(y,m,0).getDate()-(first-1-i);
+    html+=`<div class="cal-day other-month">${prevDay}</div>`;
+  }
+  for(let d=1;d<=days;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    let cls='cal-day';
+    if(ds===todayStr)cls+=' today';
+    if(workedDays.has(ds))cls+=' has-workout';
+    if(ds===selectedDate)cls+=' selected';
+    html+=`<div class="${cls}" data-date="${ds}">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  document.querySelectorAll('.cal-day[data-date]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selectedDate=el.dataset.date;
+      renderCalendar();
+      renderDayWorkouts(el.dataset.date);
+    });
+  });
+}
+function renderDayWorkouts(date){
+  const sec=document.getElementById('day-workout-section');
+  const workouts=getWorkouts().filter(w=>w.date===date);
+  const isToday=date===today();
+  sec.classList.remove('hidden');
+  let html=`<div class="section-header"><div class="section-title">${fmtDate(date)}</div></div>`;
+  html+=`<div class="day-workouts">`;
+  if(workouts.length===0){html+=`<div style="color:var(--text2);font-size:14px;padding:8px 0">當天無訓練記錄</div>`;}
+  else{workouts.forEach(w=>{
+    html+=`<div class="day-wo-item">
+      <div style="font-weight:700">${w.routineName||'自由訓練'}</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">${w.exercises.map(e=>e.name).join('・')} · ${fmtDur(w.duration)}</div>
     </div>`;
-  }).join('')+`</div>`;
-  list.querySelectorAll('.edit-rt').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openRoutineModal(b.dataset.rid);}));
-  list.querySelectorAll('.start-rt').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();startWorkout(b.dataset.rid,null);}));
+  });}
+  html+=`<button class="btn btn-primary" style="width:100%;margin-top:4px" id="btn-add-on-day">在這天新增訓練</button>`;
+  html+=`</div>`;
+  sec.innerHTML=html;
+  document.getElementById('btn-add-on-day').addEventListener('click',()=>startWorkout(null,date));
 }
-
-document.getElementById('btn-new-routine').addEventListener('click',()=>openRoutineModal(null));
-document.getElementById('btn-start-empty').addEventListener('click',()=>{ pendingDate=null; startWorkout(null,null); });
-
-// ─── ROUTINE MODAL ──────────────────────────────────────────
-function openRoutineModal(rid){
-  editRoutineId=rid;
-  const r=rid?routines.find(r=>r.id===rid):null;
-  document.getElementById('modal-routine-title').textContent=r?'編輯課表':'建立課表';
-  document.getElementById('routine-name-input').value=r?r.name:'';
-  document.getElementById('btn-del-routine').style.display=r?'':'none';
-  selExTemp=r?[...r.exerciseIds]:[];
-  routineCat='全部';
-  renderRoutineCatTabs(); renderRoutineExSel();
-  showModal('modal-routine');
-}
-function renderRoutineCatTabs(){
-  const el=document.getElementById('routine-cat-tabs');
-  el.innerHTML=['全部',...CATS].map(c=>`<button class="cat-tab${c===routineCat?' active':''}" data-c="${c}">${c}</button>`).join('');
-  el.querySelectorAll('.cat-tab').forEach(b=>b.addEventListener('click',()=>{routineCat=b.dataset.c;renderRoutineCatTabs();renderRoutineExSel();}));
-}
-function renderRoutineExSel(){
-  const filtered=exercises.filter(e=>routineCat==='全部'||e.cat===routineCat);
-  const el=document.getElementById('routine-ex-sel');
-  el.innerHTML=filtered.map(e=>{const s=selExTemp.includes(e.id);return `<div class="ex-item" data-eid="${e.id}"><div style="flex:1"><div class="ex-item-name">${esc(e.name)}</div><div class="ex-item-cat">${e.cat}</div></div><div class="ex-check${s?' sel':''}">${s?'✓':''}</div></div>`;}).join('');
-  el.querySelectorAll('.ex-item').forEach(item=>item.addEventListener('click',()=>toggleTemp(item.dataset.eid,renderRoutineExSel)));
-}
-function toggleTemp(id,cb){const i=selExTemp.indexOf(id);if(i>=0)selExTemp.splice(i,1);else selExTemp.push(id);cb();}
-document.getElementById('btn-save-routine').addEventListener('click',()=>{
-  const name=document.getElementById('routine-name-input').value.trim();
-  if(!name){alert('請輸入課表名稱');return;}
-  if(editRoutineId){const r=routines.find(r=>r.id===editRoutineId);if(r){r.name=name;r.exerciseIds=[...selExTemp];}}
-  else routines.push({id:'r'+Date.now(),name,exerciseIds:[...selExTemp]});
-  dbSave('rt',routines); closeModal('modal-routine'); renderHome();
+document.getElementById('cal-prev').addEventListener('click',()=>{
+  calDate=new Date(calDate.getFullYear(),calDate.getMonth()-1,1);renderCalendar();
 });
-document.getElementById('btn-del-routine').addEventListener('click',()=>{
-  if(!confirm('確定刪除此課表？'))return;
-  routines=routines.filter(r=>r.id!==editRoutineId);
-  dbSave('rt',routines); closeModal('modal-routine'); renderHome();
+document.getElementById('cal-next').addEventListener('click',()=>{
+  calDate=new Date(calDate.getFullYear(),calDate.getMonth()+1,1);renderCalendar();
 });
-document.getElementById('btn-cancel-routine').addEventListener('click',()=>closeModal('modal-routine'));
 
-// ─── WORKOUT ────────────────────────────────────────────────
-function startWorkout(routineId, dateOverride){
-  const r=routineId?routines.find(r=>r.id===routineId):null;
-  const exList=r?r.exerciseIds.map(id=>exercises.find(e=>e.id===id)).filter(Boolean).map(mkEx):[];
-  const dateStr=dateOverride||isoDate(new Date());
-  currentWorkout={id:'w'+Date.now(),routineId,routineName:r?r.name:'訓練',exercises:exList,startTime:Date.now(),dateOverride:dateStr};
-  workoutStartTime=Date.now();
-  document.getElementById('workout-title').value=r?r.name:'訓練';
-  document.getElementById('workout-date-badge').textContent=fmtDateLabel(dateStr).replace(/（.*）/,'');
-  clearInterval(workoutTimerID);
-  workoutTimerID=setInterval(()=>{
-    document.getElementById('workout-elapsed').textContent=fmtTime(Math.floor((Date.now()-workoutStartTime)/1000));
-  },1000);
-  navTo('workout');
+// ===================== HOME =====================
+function renderHome(){
+  renderStats_Home();
+  renderCalendar();
+  renderSuggested();
+  renderRoutineList();
+  document.getElementById('day-workout-section').classList.add('hidden');
+  selectedDate=null;
 }
-function mkEx(ex){return {exerciseId:ex.id,name:ex.name,sets:[{weight:'',reps:'',done:false}]};}
+function renderStats_Home(){
+  const workouts=getWorkouts();
+  const todayStr=today();
+  const now=new Date();
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
+  const weekStr=weekStart.toISOString().slice(0,10);
+  const monthStr=todayStr.slice(0,7);
+  const week=workouts.filter(w=>w.date>=weekStr).length;
+  const month=workouts.filter(w=>w.date.startsWith(monthStr)).length;
+  const total=workouts.length;
+  document.getElementById('home-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${week}</div><div class="stat-label">本週訓練</div></div>
+    <div class="stat-card"><div class="stat-val">${month}</div><div class="stat-label">本月訓練</div></div>
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">總訓練數</div></div>`;
+}
+function renderSuggested(){
+  const s=getSettings();
+  const todayDay=new Date().getDay();
+  const dayNames=['sun','mon','tue','wed','thu','fri','sat'];
+  const d=s.weekPlan&&s.weekPlan[dayNames[todayDay]];
+  const sec=document.getElementById('suggested-section');
+  if(d){
+    const routines=getRoutines();
+    const r=routines.find(r=>r.id===d);
+    if(r){
+      sec.innerHTML=`<div class="section-header"><div class="section-title">今日建議</div></div>
+      <div style="margin:0 16px 8px"><div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+        <div><div style="font-weight:700">${r.name}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${r.exerciseIds.length}個動作</div></div>
+        <button class="btn btn-primary btn-sm" data-rid="${r.id}">開始</button>
+      </div></div>`;
+      sec.querySelector('[data-rid]').addEventListener('click',()=>startWorkout(r.id));
+      return;
+    }
+  }
+  sec.innerHTML='';
+}
+function renderRoutineList(){
+  const routines=getRoutines();
+  const el=document.getElementById('routine-list');
+  if(routines.length===0){
+    el.innerHTML=`<div style="color:var(--text2);font-size:14px;text-align:center;padding:16px">尚無訓練計畫，點擊「+新增」建立</div>`;
+    return;
+  }
+  el.innerHTML=routines.map(r=>`
+    <div class="routine-item">
+      <div class="routine-info">
+        <div class="routine-name">${r.name}</div>
+        <div class="routine-sub">${r.exerciseIds.length}個動作</div>
+      </div>
+      <div class="routine-actions">
+        <button class="btn btn-sm btn-secondary" data-edit="${r.id}">編輯</button>
+        <button class="btn btn-sm btn-primary" data-start="${r.id}">開始</button>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openRoutineModal(b.dataset.edit)));
+  el.querySelectorAll('[data-start]').forEach(b=>b.addEventListener('click',()=>startWorkout(b.dataset.start)));
+}
+document.getElementById('btn-add-routine').addEventListener('click',()=>openRoutineModal(null));
+document.getElementById('btn-quick-start').addEventListener('click',()=>startWorkout(null));
+
+// ===================== WORKOUT SESSION =====================
+let currentWorkout=null;
+let timerInterval=null;
+let timerStart=null;
+let timerPaused=0;
+let restInterval=null;
+let restRemaining=0;
+let restTotal=0;
+
+function startWorkout(routineId,forDate){
+  const exs=getExercises();
+  const routines=getRoutines();
+  const routine=routineId?routines.find(r=>r.id===routineId):null;
+  const workoutDate=forDate||today();
+  currentWorkout={
+    id:uid(),
+    routineId:routineId||null,
+    routineName:routine?routine.name:'自由訓練',
+    date:workoutDate,
+    duration:0,
+    startTs:Date.now(),
+    exercises:[],
+    notes:''
+  };
+  if(routine){
+    routine.exerciseIds.forEach(eid=>{
+      const ex=exs.find(e=>e.id===eid);
+      if(ex)currentWorkout.exercises.push(mkEx(ex));
+    });
+  }
+  beginSession();
+}
+// Shared setup for a fresh or resumed session
+function beginSession(){
+  timerInterval=setInterval(updateTimer,1000);
+  document.getElementById('workout-name-input').value=currentWorkout.routineName;
+  document.getElementById('workout-date-badge').textContent=currentWorkout.date;
+  document.getElementById('workout-notes').value=currentWorkout.notes||'';
+  document.getElementById('finish-bar').classList.add('show');
+  requestNotifyPermission();
+  persistActive();
+  updateTimer();
+  renderWorkout();
+  showPage('home');
+}
+function persistActive(){
+  if(currentWorkout)ss('activeWorkout',currentWorkout);
+}
+function clearActive(){
+  localStorage.removeItem('activeWorkout');
+  document.getElementById('finish-bar').classList.remove('show');
+}
+function mkEx(ex){
+  const workouts=getWorkouts();
+  // Find last workout with this exercise
+  let lastSets=[];
+  for(let i=workouts.length-1;i>=0;i--){
+    const we=workouts[i].exercises.find(e=>e.exerciseId===ex.id);
+    if(we){lastSets=we.sets.filter(s=>!s.isWarmup);break;}
+  }
+  const sets=lastSets.length>0?lastSets.map(s=>({
+    weight:s.weight,reps:s.reps,done:false,isWarmup:false,isBodyweight:s.isBodyweight,
+    prevWeight:s.weight,prevReps:s.reps
+  })):[{weight:0,reps:10,done:false,isWarmup:false,isBodyweight:false,prevWeight:null,prevReps:null}];
+  return{exerciseId:ex.id,name:ex.name,cat:ex.cat,supersetGroup:null,sets};
+}
+function getElapsed(){
+  if(!currentWorkout)return 0;
+  return Math.max(0,Math.floor((Date.now()-currentWorkout.startTs)/1000));
+}
+function updateTimer(){
+  const elapsed=getElapsed();
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  const el=document.getElementById('elapsed-timer');
+  if(el)el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
 
 function renderWorkout(){
   if(!currentWorkout)return;
-  const c=document.getElementById('workout-exercises');
-  c.innerHTML=currentWorkout.exercises.map((ex,ei)=>{
-    const lm=getLastMax(ex.exerciseId);
-    return `<div class="ex-block">
-      <div class="ex-block-hd">
-        <div><div class="ex-block-name">${esc(ex.name)}</div>${lm?`<div class="ex-block-hint">上次最大 ${lm} kg</div>`:''}</div>
-        <button class="del-btn" data-ei="${ei}">✕</button>
+  const s=getSettings();
+  const el=document.getElementById('exercise-list');
+  el.innerHTML='';
+  currentWorkout.exercises.forEach((ex,ei)=>{
+    const block=document.createElement('div');
+    block.className='ex-block';
+    block.dataset.ei=ei;
+    let superBadge='';
+    if(ex.supersetGroup){superBadge=`<span class="ex-badge badge-super-${ex.supersetGroup==='A'?'a':'b'}">超${ex.supersetGroup}</span>`;}
+    const hasPrev=ex.sets.some(st=>!st.isWarmup&&st.prevWeight!=null);
+    block.innerHTML=`
+      <div class="ex-header">
+        <span class="drag-handle" data-drag="${ei}" role="button" aria-label="拖曳排序">≡</span>
+        <span class="ex-name">${ex.name}</span>
+        ${superBadge}
+        <button class="btn btn-sm" style="background:${ex.supersetGroup?'var(--purple)':'var(--input-bg)'};color:${ex.supersetGroup?'#fff':'var(--text2)'};font-size:11px" data-super="${ei}" aria-label="超級組">超組</button>
+        <button class="btn btn-sm" data-remove="${ei}" style="font-size:18px;padding:4px 8px;background:none;color:var(--text2)" aria-label="移除動作">×</button>
       </div>
-      <div class="set-grid"><span class="set-hd-text">組</span><span class="set-hd-text">公斤</span><span class="set-hd-text">次數</span><span></span></div>
-      ${ex.sets.map((s,si)=>`<div class="set-grid">
-        <div class="set-num">${si+1}</div>
-        <input class="set-input" type="number" inputmode="decimal" placeholder="0" value="${esc(s.weight)}" data-ei="${ei}" data-si="${si}" data-f="weight">
-        <input class="set-input" type="number" inputmode="numeric" placeholder="0" value="${esc(s.reps)}" data-ei="${ei}" data-si="${si}" data-f="reps">
-        <button class="set-done-btn${s.done?' done':''}" data-ei="${ei}" data-si="${si}">✓</button>
-      </div>`).join('')}
-      <div class="add-set-row"><button class="btn-text" style="font-size:15px" data-ei="${ei}">＋ 新增一組</button></div>
-    </div>`;
-  }).join('');
-  c.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',()=>{if(confirm('移除此動作？')){currentWorkout.exercises.splice(+b.dataset.ei,1);renderWorkout();}}));
-  c.querySelectorAll('.set-input').forEach(inp=>inp.addEventListener('change',()=>{currentWorkout.exercises[+inp.dataset.ei].sets[+inp.dataset.si][inp.dataset.f]=inp.value;}));
-  c.querySelectorAll('.set-done-btn').forEach(btn=>btn.addEventListener('click',()=>{
-    const s=currentWorkout.exercises[+btn.dataset.ei].sets[+btn.dataset.si];
-    s.done=!s.done; btn.classList.toggle('done',s.done);
-    if(s.done) startRestTimer(REST_DEF);
-  }));
-  c.querySelectorAll('.add-set-row .btn-text').forEach(btn=>btn.addEventListener('click',()=>{
-    const ei=+btn.dataset.ei, last=currentWorkout.exercises[ei].sets.slice(-1)[0]||{};
-    currentWorkout.exercises[ei].sets.push({weight:last.weight||'',reps:last.reps||'',done:false});
-    renderWorkout();
-  }));
-}
-function getLastMax(exId){
-  for(let i=workouts.length-1;i>=0;i--){
-    const ex=workouts[i].exercises.find(e=>e.exerciseId===exId);
-    if(ex){const max=Math.max(0,...ex.sets.filter(s=>s.done&&s.weight).map(s=>+s.weight||0));if(max>0)return max;}
-  }return null;
-}
-
-document.getElementById('btn-add-ex').addEventListener('click',()=>{addExCat='全部';selExTemp=[];renderAddExCatTabs();renderAddExList();showModal('modal-add-ex');});
-function renderAddExCatTabs(){
-  const el=document.getElementById('add-ex-cat-tabs');
-  el.innerHTML=['全部',...CATS].map(c=>`<button class="cat-tab${c===addExCat?' active':''}" data-c="${c}">${c}</button>`).join('');
-  el.querySelectorAll('.cat-tab').forEach(b=>b.addEventListener('click',()=>{addExCat=b.dataset.c;renderAddExCatTabs();renderAddExList();}));
-}
-function renderAddExList(){
-  const el=document.getElementById('add-ex-list');
-  const filtered=exercises.filter(e=>addExCat==='全部'||e.cat===addExCat);
-  el.innerHTML=filtered.map(e=>{const s=selExTemp.includes(e.id);return `<div class="ex-item" data-eid="${e.id}"><div style="flex:1"><div class="ex-item-name">${esc(e.name)}</div><div class="ex-item-cat">${e.cat}</div></div><div class="ex-check${s?' sel':''}">${s?'✓':''}</div></div>`;}).join('');
-  el.querySelectorAll('.ex-item').forEach(i=>i.addEventListener('click',()=>toggleTemp(i.dataset.eid,renderAddExList)));
-}
-document.getElementById('btn-confirm-add').addEventListener('click',()=>{
-  selExTemp.forEach(id=>{const ex=exercises.find(e=>e.id===id);if(ex)currentWorkout.exercises.push(mkEx(ex));});
-  closeModal('modal-add-ex'); renderWorkout();
-});
-document.getElementById('btn-cancel-add').addEventListener('click',()=>closeModal('modal-add-ex'));
-
-// 自訂動作（訓練中直接新增）
-document.getElementById('btn-show-create-ex').addEventListener('click',()=>{
-  const form=document.getElementById('create-ex-form');
-  const showing=form.style.display!=='none';
-  form.style.display=showing?'none':'block';
-  if(!showing){
-    document.getElementById('inline-ex-name').value='';
-    const sel=document.getElementById('inline-ex-cat');
-    sel.innerHTML='<option value="">選擇分類</option>'+CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
-    document.getElementById('inline-ex-name').focus();
-  }
-});
-document.getElementById('btn-inline-cancel-ex').addEventListener('click',()=>{
-  document.getElementById('create-ex-form').style.display='none';
-});
-document.getElementById('btn-inline-save-ex').addEventListener('click',()=>{
-  const name=document.getElementById('inline-ex-name').value.trim();
-  const cat=document.getElementById('inline-ex-cat').value;
-  if(!name){alert('請輸入動作名稱');return;}
-  if(!cat){alert('請選擇分類');return;}
-  const newEx={id:'ex'+Date.now(),name,cat,custom:true};
-  exercises.push(newEx);
-  dbSave('ex',exercises);
-  // 直接加入本次訓練
-  currentWorkout.exercises.push(mkEx(newEx));
-  document.getElementById('create-ex-form').style.display='none';
-  closeModal('modal-add-ex');
-  renderWorkout();
-});
-
-document.getElementById('btn-finish').addEventListener('click',()=>{
-  if(!currentWorkout)return;
-  const hasDone=currentWorkout.exercises.some(ex=>ex.sets.some(s=>s.done));
-  if(!hasDone&&!confirm('還沒完成任何組，確定結束？'))return;
-  const dateStr=currentWorkout.dateOverride||isoDate(new Date());
-  currentWorkout.date=dateStr+'T12:00:00';
-  currentWorkout.duration=Math.floor((Date.now()-workoutStartTime)/1000);
-  currentWorkout.routineName=document.getElementById('workout-title').value||currentWorkout.routineName;
-  workouts.push(currentWorkout);
-  dbSave('wk',workouts);
-  clearInterval(workoutTimerID); stopRestTimer();
-  currentWorkout=null; navTo('home');
-});
-document.getElementById('btn-cancel-workout').addEventListener('click',()=>{
-  if(!confirm('確定取消？紀錄不會儲存'))return;
-  clearInterval(workoutTimerID); stopRestTimer(); currentWorkout=null; navTo('home');
-});
-
-// ─── REST TIMER ─────────────────────────────────────────────
-function startRestTimer(s){
-  stopRestTimer(); restRemain=s; restTotal=s;
-  document.getElementById('timer-overlay').classList.add('show');
-  updTimer();
-  restTimerID=setInterval(()=>{restRemain--;if(restRemain<=0){stopRestTimer();return;}updTimer();},1000);
-}
-function updTimer(){
-  document.getElementById('timer-num').textContent=restRemain;
-  const pct=restRemain/restTotal;
-  const fill=document.getElementById('timer-fill');
-  fill.style.strokeDasharray=CIRC;
-  fill.style.strokeDashoffset=CIRC*(1-pct);
-  fill.style.stroke=restRemain<=10?'var(--red)':'var(--accent)';
-}
-function stopRestTimer(){clearInterval(restTimerID);document.getElementById('timer-overlay').classList.remove('show');}
-document.getElementById('btn-t-skip').addEventListener('click',stopRestTimer);
-document.getElementById('btn-t-plus').addEventListener('click',()=>{restRemain=Math.min(restRemain+30,600);restTotal=Math.max(restTotal,restRemain);updTimer();});
-document.getElementById('btn-t-minus').addEventListener('click',()=>{restRemain=Math.max(restRemain-15,1);updTimer();});
-
-// ─── HISTORY ────────────────────────────────────────────────
-function renderHistory(){
-  const list=document.getElementById('history-list');
-  if(!workouts.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">還沒有訓練紀錄</div><div>完成第一次訓練後就會顯示在這裡</div></div>`;return;}
-  const sorted=[...workouts].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  list.innerHTML=sorted.map(w=>{
-    const d=new Date(w.date); const dn=['日','一','二','三','四','五','六'];
-    const dateStr=`${d.getMonth()+1}月${d.getDate()}日（${dn[d.getDay()]}）`;
-    const uniq=[...new Set(w.exercises.map(e=>e.name))];
-    const done=w.exercises.reduce((s,ex)=>s+ex.sets.filter(s=>s.done).length,0);
-    return `<div class="history-card" data-wid="${w.id}">
-      <div class="history-date">${dateStr}</div>
-      <div class="history-name">${esc(w.routineName)}</div>
-      <div class="history-tags">${uniq.slice(0,4).map(n=>`<span class="history-tag">${esc(n)}</span>`).join('')}${uniq.length>4?`<span class="history-tag">+${uniq.length-4}</span>`:''}</div>
-      <div class="history-meta"><span>⏱ ${fmtTime(w.duration||0)}</span><span>✓ ${done} 組</span><span>${w.exercises.length} 個動作</span></div>
-    </div>`;
-  }).join('');
-  list.querySelectorAll('.history-card').forEach(c=>c.addEventListener('click',()=>showWorkoutDetail(c.dataset.wid)));
-}
-
-function showWorkoutDetail(wid){
-  const w=workouts.find(w=>w.id===wid); if(!w)return;
-  const d=new Date(w.date);
-  let html=`<div class="modal-title">${esc(w.routineName)}</div>
-    <div style="color:var(--text3);font-size:13px;margin-bottom:20px">${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} · ${fmtTime(w.duration||0)}</div>`;
-  w.exercises.forEach(ex=>{
-    const done=ex.sets.filter(s=>s.done); if(!done.length)return;
-    html+=`<div style="margin-bottom:18px"><div style="font-size:15px;font-weight:700;color:var(--accent);margin-bottom:8px">${esc(ex.name)}</div>
-      ${done.map((s,i)=>`<div class="detail-row"><span class="detail-set-n">組${i+1}</span><span>${s.weight||0} kg × ${s.reps||0} 次</span>${isPR(ex.exerciseId,+s.weight||0,w.date)?'<span class="pr">PR</span>':''}</div>`).join('')}
-    </div>`;
-  });
-  html+=`<button class="btn btn-danger" id="btn-del-w" style="margin-top:8px">刪除此紀錄</button>`;
-  document.getElementById('detail-content').innerHTML=html;
-  document.getElementById('btn-del-w').addEventListener('click',()=>{
-    if(!confirm('確定刪除？'))return;
-    workouts=workouts.filter(w=>w.id!==wid); dbSave('wk',workouts);
-    closeModal('modal-detail'); renderHistory(); renderCal();
-  });
-  showModal('modal-detail');
-}
-function isPR(exId,weight,curDate){
-  if(!weight)return false;
-  return !workouts.some(w=>w.date<curDate&&w.exercises.some(ex=>ex.exerciseId===exId&&ex.sets.some(s=>s.done&&(+s.weight||0)>=weight)));
-}
-document.getElementById('btn-close-detail').addEventListener('click',()=>closeModal('modal-detail'));
-document.getElementById('btn-close-progress').addEventListener('click',()=>closeModal('modal-progress'));
-
-// ─── EXERCISES ──────────────────────────────────────────────
-function renderExercises(){
-  const tabs=document.getElementById('ex-cat-tabs');
-  tabs.innerHTML=['全部',...CATS].map(c=>`<button class="cat-tab${c===exCat?' active':''}" data-c="${c}">${c}</button>`).join('');
-  tabs.querySelectorAll('.cat-tab').forEach(b=>b.addEventListener('click',()=>{exCat=b.dataset.c;renderExercises();}));
-  const filtered=exercises.filter(e=>exCat==='全部'||e.cat===exCat);
-  document.getElementById('ex-list-main').innerHTML=`<div class="ex-list-card">`+
-    filtered.map(e=>`<div class="ex-item"><div style="flex:1"><div class="ex-item-name">${esc(e.name)}${e.custom?'<span style="font-size:11px;color:var(--text3);margin-left:6px">自訂</span>':''}</div><div class="ex-item-cat">${e.cat}</div></div>
-      <button class="del-btn" style="color:var(--accent)" data-prog="${e.id}">📈</button>
-      ${e.custom?`<button class="del-btn" data-delex="${e.id}">🗑</button>`:''}
-    </div>`).join('')+`</div>`;
-  document.getElementById('ex-list-main').querySelectorAll('[data-prog]').forEach(b=>b.addEventListener('click',()=>showProgress(b.dataset.prog)));
-  document.getElementById('ex-list-main').querySelectorAll('[data-delex]').forEach(b=>b.addEventListener('click',()=>{
-    if(!confirm('確定刪除？'))return; exercises=exercises.filter(e=>e.id!==b.dataset.delex); dbSave('ex',exercises); renderExercises();
-  }));
-}
-document.getElementById('btn-new-ex').addEventListener('click',()=>{
-  document.getElementById('new-ex-name').value='';
-  const sel=document.getElementById('new-ex-cat');
-  sel.innerHTML='<option value="">選擇分類</option>'+CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
-  showModal('modal-new-ex');
-});
-document.getElementById('btn-save-ex').addEventListener('click',()=>{
-  const name=document.getElementById('new-ex-name').value.trim(), cat=document.getElementById('new-ex-cat').value;
-  if(!name){alert('請輸入動作名稱');return;} if(!cat){alert('請選擇分類');return;}
-  exercises.push({id:'ex'+Date.now(),name,cat,custom:true}); dbSave('ex',exercises); closeModal('modal-new-ex'); renderExercises();
-});
-document.getElementById('btn-cancel-new-ex').addEventListener('click',()=>closeModal('modal-new-ex'));
-
-// ─── PROGRESS ───────────────────────────────────────────────
-function showProgress(exId){
-  const ex=exercises.find(e=>e.id===exId);
-  const data=workouts.map(w=>{
-    const wxEx=w.exercises.find(e=>e.exerciseId===exId); if(!wxEx)return null;
-    const max=Math.max(0,...wxEx.sets.filter(s=>s.done&&s.weight).map(s=>+s.weight||0)); if(!max)return null;
-    const d=new Date(w.date); return {label:`${d.getMonth()+1}/${d.getDate()}`,weight:max};
-  }).filter(Boolean);
-  let html=`<div class="modal-title">${esc(ex?.name||'')} 進步曲線</div>`;
-  if(data.length<2) html+=`<div style="color:var(--text3);text-align:center;padding:48px 0;font-size:15px">至少需要 2 次訓練才能顯示進步曲線</div>`;
-  else html+=`<canvas id="prog-chart" height="200"></canvas>`;
-  document.getElementById('progress-content').innerHTML=html;
-  showModal('modal-progress');
-  if(data.length>=2&&typeof Chart!=='undefined'){
-    setTimeout(()=>{
-      const ctx=document.getElementById('prog-chart').getContext('2d');
-      new Chart(ctx,{type:'line',data:{labels:data.map(d=>d.label),datasets:[{data:data.map(d=>d.weight),borderColor:'#007aff',backgroundColor:'rgba(0,122,255,.1)',fill:true,tension:.4,pointBackgroundColor:'#007aff',pointRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#999'},grid:{color:'#eee'}},y:{ticks:{color:'#999'},grid:{color:'#eee'}}}}});
-    },150);
-  }
-}
-
-// ─── STATS ──────────────────────────────────────────────────
-function renderStats(){
-  const now=new Date();
-  const months=Array.from({length:6},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth()-5+i,1);return{label:`${d.getMonth()+1}月`,year:d.getFullYear(),month:d.getMonth()};});
-  const mc=months.map(m=>workouts.filter(w=>{const d=new Date(w.date);return d.getFullYear()===m.year&&d.getMonth()===m.month;}).length);
-  const wd=getWeekDates(now);
-  const wt=wd.map(d=>workouts.some(w=>w.date.slice(0,10)===d));
-  const tv=workouts.reduce((s,w)=>s+w.exercises.reduce((s2,ex)=>s2+ex.sets.filter(s=>s.done).reduce((s3,s)=>s3+(+s.weight||0)*(+s.reps||0),0),0),0);
-  const ad=workouts.length?Math.floor(workouts.reduce((s,w)=>s+(w.duration||0),0)/workouts.length):0;
-  const ec={};workouts.forEach(w=>w.exercises.forEach(ex=>{ec[ex.name]=(ec[ex.name]||0)+1;}));
-  const top=Object.entries(ec).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const dn=['一','二','三','四','五','六','日'];
-  document.getElementById('stats-content').innerHTML=`
-    <div class="stats-row" style="margin-bottom:14px">
-      <div class="stat-card"><div class="stat-num">${workouts.length}</div><div class="stat-label">總訓練次</div></div>
-      <div class="stat-card"><div class="stat-num">${(tv/1000).toFixed(1)}k</div><div class="stat-label">總訓練量 kg</div></div>
-      <div class="stat-card"><div class="stat-num">${fmtTime(ad)}</div><div class="stat-label">平均時長</div></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">本週訓練</div>
-      <div class="week-grid">${dn.map((d,i)=>`<div class="wd"><div class="wd-label">${d}</div><div class="wd-bar${wt[i]?' trained':''}"></div></div>`).join('')}</div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">近 6 個月訓練次數</div>
-      <canvas id="month-chart" height="150"></canvas>
-    </div>
-    ${top.length?`<div class="chart-card"><div class="chart-title">最常訓練動作</div>${top.map(([n,c])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:.5px solid var(--border)"><span style="font-size:15px">${esc(n)}</span><span style="font-size:13px;color:var(--accent);font-weight:600">${c} 次</span></div>`).join('')}</div>`:''}
-  `;
-  if(typeof Chart!=='undefined'){
-    setTimeout(()=>{
-      const ctx=document.getElementById('month-chart')?.getContext('2d'); if(!ctx)return;
-      new Chart(ctx,{type:'bar',data:{labels:months.map(m=>m.label),datasets:[{data:mc,backgroundColor:mc.map((_,i)=>i===5?'#007aff':'rgba(0,122,255,.3)'),borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#999'},grid:{display:false}},y:{ticks:{color:'#999',stepSize:1},grid:{color:'#eee'}}}}});
-    },150);
-  }
-}
-
-// ─── UTILITIES ──────────────────────────────────────────────
-function getWeekDates(d){
-  const day=d.getDay(),mon=new Date(d);
-  mon.setDate(d.getDate()-(day===0?6:day-1));
-  return Array.from({length:7},(_,i)=>{const x=new Date(mon);x.setDate(mon.getDate()+i);return isoDate(x);});
-}
-
-// ─── INIT ───────────────────────────────────────────────────
-initCal();
-renderHome();
-
-// ─── PWA ────────────────────────────────────────────────────
-(function(){
-  // 1. 產生 APP 圖示（canvas 畫一個藍底啞鈴）
-  function makeIcon(size){
-    const c=document.createElement('canvas');
-    c.width=c.height=size;
-    const ctx=c.getContext('2d');
-    // 背景
-    ctx.fillStyle='#007aff';
-    const r=size*0.2;
-    ctx.beginPath();
-    ctx.moveTo(r,0);ctx.lineTo(size-r,0);
-    ctx.quadraticCurveTo(size,0,size,r);
-    ctx.lineTo(size,size-r);
-    ctx.quadraticCurveTo(size,size,size-r,size);
-    ctx.lineTo(r,size);
-    ctx.quadraticCurveTo(0,size,0,size-r);
-    ctx.lineTo(0,r);
-    ctx.quadraticCurveTo(0,0,r,0);
-    ctx.closePath();
-    ctx.fill();
-    // 啞鈴槓
-    const cx=size/2, cy=size/2, bw=size*0.48, bh=size*0.08;
-    ctx.fillStyle='#fff';
-    ctx.beginPath();
-    ctx.roundRect(cx-bw/2, cy-bh/2, bw, bh, bh/2);
-    ctx.fill();
-    // 左圓盤
-    const pw=size*0.1, ph=size*0.3;
-    [[cx-bw/2-pw, cy-ph/2],[cx+bw/2, cy-ph/2]].forEach(([x,y])=>{
-      ctx.beginPath();
-      ctx.roundRect(x, y, pw, ph, pw/2);
-      ctx.fill();
+      <table class="set-table">
+        <thead><tr>
+          <th style="width:40px">組</th>
+          <th>${s.unit}</th>
+          <th>次</th>
+          <th style="width:56px">✓</th>
+        </tr></thead>
+        <tbody id="sets-${ei}"></tbody>
+      </table>
+      <div id="orm-${ei}" style="padding:6px 12px 0;font-size:12px;color:var(--text2);min-height:20px"></div>
+      <div class="ex-footer">
+        <button class="btn btn-sm" style="background:rgba(255,159,10,0.15);color:var(--orange)" data-add-warmup="${ei}">+暖身組</button>
+        <button class="btn btn-sm btn-secondary" data-add-set="${ei}">+正式組</button>
+        ${hasPrev?`<button class="btn btn-sm btn-secondary" data-reuse="${ei}">沿用上次</button>`:''}
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px">
+          <input type="checkbox" data-bw="${ei}" ${ex.sets[0]&&ex.sets[0].isBodyweight?'checked':''}> 體重
+        </label>
+      </div>`;
+    el.appendChild(block);
+    renderSets(ei);
+    block.querySelector(`[data-remove="${ei}"]`).addEventListener('click',()=>{
+      confirmSheet(`移除「${ex.name}」？`,()=>{currentWorkout.exercises.splice(ei,1);renderWorkout();});
     });
-    return c.toDataURL('image/png');
+    block.querySelector(`[data-super="${ei}"]`).addEventListener('click',()=>toggleSuperset(ei));
+    block.querySelector(`[data-add-warmup="${ei}"]`).addEventListener('click',()=>{
+      currentWorkout.exercises[ei].sets.unshift({weight:0,reps:10,done:false,isWarmup:true,isBodyweight:false,prevWeight:null,prevReps:null});
+      renderWorkout();
+    });
+    block.querySelector(`[data-add-set="${ei}"]`).addEventListener('click',()=>{
+      const last=currentWorkout.exercises[ei].sets.filter(s=>!s.isWarmup).slice(-1)[0];
+      currentWorkout.exercises[ei].sets.push({
+        weight:last?last.weight:0,reps:last?last.reps:10,done:false,isWarmup:false,isBodyweight:false,
+        prevWeight:last?last.weight:null,prevReps:last?last.reps:null
+      });
+      renderWorkout();
+    });
+    const reuseBtn=block.querySelector(`[data-reuse="${ei}"]`);
+    if(reuseBtn)reuseBtn.addEventListener('click',()=>{
+      currentWorkout.exercises[ei].sets.forEach(st=>{
+        if(!st.isWarmup&&st.prevWeight!=null){st.weight=st.prevWeight;st.reps=st.prevReps;}
+      });
+      renderWorkout();toast('已沿用上次數據');
+    });
+    block.querySelector(`[data-bw="${ei}"]`).addEventListener('change',function(){
+      currentWorkout.exercises[ei].sets.forEach(s=>s.isBodyweight=this.checked);
+      renderWorkout();
+    });
+    setupDragHandle(block.querySelector(`[data-drag="${ei}"]`),ei);
+  });
+  persistActive();
+}
+
+function updateORMDisplay(ei){
+  if(!currentWorkout)return;
+  const s=getSettings();
+  const ex=currentWorkout.exercises[ei];
+  const el=document.getElementById(`orm-${ei}`);
+  if(!el)return;
+  // Find best 1RM among completed working sets in this session
+  let bestORM=0,bestW=0,bestR=0;
+  ex.sets.filter(s2=>!s2.isWarmup&&s2.done&&s2.weight>0&&s2.reps>0).forEach(set=>{
+    const orm=oneRM(set.weight,set.reps);
+    if(orm>bestORM){bestORM=orm;bestW=set.weight;bestR=set.reps;}
+  });
+  if(bestORM===0){el.textContent='完成一組後顯示預估 1RM';el.style.color='var(--text2)';return;}
+  const dispORM=Math.round(displayW(bestORM,s.unit)*2)/2;
+  const disp85=Math.round(displayW(bestORM*0.85,s.unit)*2)/2;
+  el.innerHTML=`預估 1RM <strong style="color:var(--accent)">${dispORM}${s.unit}</strong> · <span style="color:var(--green);font-weight:700">85% ${disp85}${s.unit}</span>`;
+}
+
+function renderSets(ei){
+  const s=getSettings();
+  const ex=currentWorkout.exercises[ei];
+  const tbody=document.getElementById(`sets-${ei}`);
+  if(!tbody)return;
+  let wNum=0,sNum=0;
+  tbody.innerHTML='';
+  ex.sets.forEach((set,si)=>{
+    const isW=set.isWarmup;
+    if(isW)wNum++;else sNum++;
+    const row=document.createElement('tr');
+    row.className=`set-row${isW?' warmup-row':''}${ex.supersetGroup?' superset-row':''}${set.done?' done-row':''}`;
+    const numCell=isW?`<span class="w-badge">W</span>`:`<span class="set-num">${sNum}</span>`;
+    const wVal=set.isBodyweight?'體重':displayW(set.weight||0,s.unit);
+    const hint=(!isW&&set.prevWeight!=null)?`<div class="hint-text">上次 ${displayW(set.prevWeight,s.unit)}${s.unit}×${set.prevReps}次</div>`:'';
+    row.innerHTML=`
+      <td>${numCell}</td>
+      <td><input class="set-input" type="number" step="0.5" value="${set.isBodyweight?'':displayW(set.weight||0,s.unit)}" ${set.isBodyweight?'disabled placeholder="體重"':''} data-si="${si}" data-field="weight" style="width:70px">${hint}</td>
+      <td><input class="set-input" type="number" value="${set.reps||0}" data-si="${si}" data-field="reps" style="width:56px"></td>
+      <td><button class="done-btn${set.done?' checked':''}" data-done="${si}" role="checkbox" aria-pressed="${set.done?'true':'false'}" aria-label="${set.done?'取消完成此組':'標記此組完成'}">✓</button></td>`;
+    tbody.appendChild(row);
+    row.querySelectorAll('input[data-field]').forEach(inp=>{
+      inp.addEventListener('change',function(){
+        const f=this.dataset.field,v=parseFloat(this.value)||0;
+        if(f==='weight')currentWorkout.exercises[ei].sets[si].weight=toKg(v,s.unit);
+        else currentWorkout.exercises[ei].sets[si].reps=v;
+        updateORMDisplay(ei);
+        persistActive();
+      });
+    });
+    row.querySelector(`[data-done="${si}"]`).addEventListener('click',()=>toggleSetDone(ei,si));
+  });
+  updateORMDisplay(ei);
+}
+
+function toggleSetDone(ei,si){
+  const s=getSettings();
+  const set=currentWorkout.exercises[ei].sets[si];
+  set.done=!set.done;
+  if(set.done){
+    haptic(15);
+    if(!set.isWarmup){
+      const ex=currentWorkout.exercises[ei];
+      const isSuper=!!ex.supersetGroup;
+      if(!isSuper&&s.restTime>0)startRestTimer(s.restTime);
+    }
   }
+  persistActive();
+  renderWorkout();
+  if(set.done){
+    const btn=document.querySelector(`#sets-${ei} [data-done="${si}"]`);
+    if(btn)btn.classList.add('pop');
+  }
+}
 
-  const icon192 = makeIcon(192);
-  const icon512 = makeIcon(512);
+function toggleSuperset(ei){
+  const exs=currentWorkout.exercises;
+  const ex=exs[ei];
+  if(ex.supersetGroup){
+    // Remove superset
+    exs.forEach(e=>{if(e.supersetGroup===ex.supersetGroup)e.supersetGroup=null;});
+  }else if(ei+1<exs.length){
+    ex.supersetGroup='A';
+    exs[ei+1].supersetGroup='B';
+  }
+  renderWorkout();
+}
 
-  // iOS 桌面圖示
-  document.getElementById('apple-touch-icon').href = icon192;
+// ===================== DRAG REORDER =====================
+function setupDragHandle(handle,startEi){
+  handle.style.touchAction='none'; // stop the page scrolling while dragging on touch
+  handle.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    let curEi=startEi;
+    let dragging=document.querySelectorAll('.ex-block')[curEi];
+    if(dragging){dragging.style.opacity='0.7';dragging.style.transform='scale(1.02)';}
+    const onMove=ev=>{
+      ev.preventDefault();
+      const target=document.elementFromPoint(ev.clientX,ev.clientY);
+      const targetBlock=target&&target.closest('.ex-block');
+      if(targetBlock&&targetBlock!==dragging){
+        const targetEi=parseInt(targetBlock.dataset.ei);
+        if(!isNaN(targetEi)&&targetEi!==curEi){
+          const arr=currentWorkout.exercises;
+          const [moved]=arr.splice(curEi,1);
+          arr.splice(targetEi,0,moved);
+          curEi=targetEi;
+          renderWorkout();
+          // re-acquire the freshly rendered block so the drag styling follows it
+          dragging=document.querySelectorAll('.ex-block')[curEi];
+          if(dragging){dragging.style.opacity='0.7';dragging.style.transform='scale(1.02)';}
+        }
+      }
+    };
+    const onUp=()=>{
+      document.removeEventListener('pointermove',onMove);
+      document.removeEventListener('pointerup',onUp);
+      document.removeEventListener('pointercancel',onUp);
+      persistActive();
+      renderWorkout();
+    };
+    document.addEventListener('pointermove',onMove,{passive:false});
+    document.addEventListener('pointerup',onUp);
+    document.addEventListener('pointercancel',onUp);
+  });
+}
 
-  // 2. 動態注入 manifest（blob URL）
-  const manifest = {
-    name: '健身紀錄',
-    short_name: '健身',
-    description: '記錄訓練動作、組數、重量與休息時間',
-    start_url: './',
-    scope: './',
-    display: 'standalone',
-    orientation: 'portrait',
-    background_color: '#f2f2f7',
-    theme_color: '#007aff',
-    icons: [
-      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
-    ]
+// ===================== REST TIMER =====================
+function startRestTimer(secs){
+  stopRestTimer();
+  restRemaining=secs;restTotal=secs;
+  document.getElementById('rest-overlay').classList.remove('hidden');
+  updateRestDisplay();
+  setTitleCountdown(restRemaining);
+  restInterval=setInterval(()=>{
+    restRemaining--;
+    if(restRemaining<=0){
+      haptic([200,100,200]);beep();
+      notify('休息結束！','開始下一組 💪');
+      restoreTitle();
+      stopRestTimer();
+      return;
+    }
+    updateRestDisplay();
+    setTitleCountdown(restRemaining);
+  },1000);
+}
+function stopRestTimer(){
+  clearInterval(restInterval);
+  restoreTitle();
+  document.getElementById('rest-overlay').classList.add('hidden');
+}
+function updateRestDisplay(){
+  const m=Math.floor(restRemaining/60),s=restRemaining%60;
+  document.getElementById('rest-display').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  const arc=document.getElementById('rest-arc');
+  const pct=restRemaining/restTotal;
+  arc.style.strokeDashoffset=326.7*(1-pct);
+}
+document.getElementById('rest-minus').addEventListener('click',()=>{restRemaining=Math.max(0,restRemaining-15);updateRestDisplay();});
+document.getElementById('rest-plus').addEventListener('click',()=>{restRemaining+=30;restTotal=Math.max(restTotal,restRemaining);updateRestDisplay();});
+document.getElementById('rest-skip').addEventListener('click',stopRestTimer);
+
+// ===================== FINISH WORKOUT =====================
+document.getElementById('btn-finish-workout').addEventListener('click',finishWorkout);
+function finishWorkout(){
+  if(!currentWorkout)return;
+  currentWorkout.duration=getElapsed();
+  currentWorkout.routineName=document.getElementById('workout-name-input').value||'自由訓練';
+  currentWorkout.notes=document.getElementById('workout-notes').value;
+  // Remove undone warmup sets, keep all others
+  currentWorkout.exercises.forEach(ex=>{
+    ex.sets=ex.sets.filter(s=>s.done||!s.isWarmup);
+  });
+  currentWorkout.exercises=currentWorkout.exercises.filter(ex=>ex.sets.length>0);
+  const workouts=getWorkouts();
+  workouts.push(currentWorkout);
+  saveWorkouts(workouts);
+  clearInterval(timerInterval);
+  showFinishSummary(currentWorkout);
+}
+function showFinishSummary(wo){
+  const s=getSettings();
+  const doneSets=wo.exercises.reduce((a,e)=>a+e.sets.filter(s=>!s.isWarmup&&s.done).length,0);
+  let html=`<div style="font-size:18px;font-weight:700;margin-bottom:4px">${wo.routineName}</div>
+  <div style="color:var(--text2);margin-bottom:12px">${fmtDur(wo.duration)} · ${doneSets}組</div>`;
+  wo.exercises.forEach(ex=>{
+    html+=`<div style="margin-bottom:8px"><div style="font-weight:600;color:var(--accent)">${ex.name}</div>`;
+    ex.sets.filter(s=>s.done&&!s.isWarmup).forEach((set,i)=>{
+      html+=`<div style="font-size:13px;color:var(--text2)">${i+1}. ${displayW(set.weight,s.unit)}${s.unit} × ${set.reps}次</div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById('finish-summary').innerHTML=html;
+  document.getElementById('modal-finish').classList.remove('hidden');
+}
+document.getElementById('finish-done').addEventListener('click',()=>{
+  document.getElementById('modal-finish').classList.add('hidden');
+  currentWorkout=null;
+  showPage('home');
+});
+document.getElementById('finish-share').addEventListener('click',()=>{
+  const workouts=getWorkouts();
+  if(workouts.length>0)generateShareImage(workouts[workouts.length-1]);
+});
+
+document.getElementById('btn-cancel-workout').addEventListener('click',()=>{
+  if(confirm('確定取消訓練？')){
+    clearInterval(timerInterval);
+    stopRestTimer();
+    currentWorkout=null;
+    showPage('home');
+  }
+});
+document.getElementById('workout-name-input').addEventListener('input',function(){
+  if(currentWorkout)currentWorkout.routineName=this.value;
+});
+
+// ===================== ADD EXERCISE MODAL =====================
+let addExCallback=null;
+let modalExCat='全部';
+function openAddExerciseModal(){
+  modalExCat='全部';
+  document.getElementById('modal-ex-search').value='';
+  renderModalExCats();
+  renderModalExList();
+  document.getElementById('modal-add-ex').classList.remove('hidden');
+}
+document.getElementById('btn-add-exercise').addEventListener('click',openAddExerciseModal);
+document.getElementById('modal-add-ex-close').addEventListener('click',()=>document.getElementById('modal-add-ex').classList.add('hidden'));
+document.getElementById('modal-add-ex').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('modal-ex-search').addEventListener('input',renderModalExList);
+
+function renderModalExCats(){
+  const tabs=document.getElementById('modal-ex-cat-tabs');
+  const cats=['全部',...CATS];
+  tabs.innerHTML=cats.map(c=>`<button class="cat-tab${modalExCat===c?' active':''}" data-mcat="${c}">${c}</button>`).join('');
+  tabs.querySelectorAll('[data-mcat]').forEach(b=>b.addEventListener('click',()=>{modalExCat=b.dataset.mcat;renderModalExCats();renderModalExList();}));
+}
+function renderModalExList(){
+  const q=document.getElementById('modal-ex-search').value.toLowerCase();
+  const exercises=getExercises();
+  const filtered=exercises.filter(e=>{
+    if(modalExCat!=='全部'&&e.cat!==modalExCat)return false;
+    if(q&&!e.name.toLowerCase().includes(q))return false;
+    return true;
+  });
+  const el=document.getElementById('modal-ex-list');
+  if(filtered.length===0){el.innerHTML=`<div class="empty-state">找不到動作</div>`;return;}
+  el.innerHTML=filtered.map(e=>`
+    <div class="ex-row" style="padding:10px 8px;cursor:pointer;border-radius:8px" data-mid="${e.id}">
+      <div class="ex-info"><div class="ex-row-name">${e.name}</div>
+      <div class="muscle-tags">${(e.muscles||[]).map(m=>`<span class="muscle-tag">${m}</span>`).join('')}</div></div>
+      <span style="color:var(--text2)">${e.cat}</span>
+    </div>`).join('');
+  el.querySelectorAll('[data-mid]').forEach(item=>{
+    item.addEventListener('click',()=>{
+      const ex=exercises.find(e=>e.id===item.dataset.mid);
+      if(ex&&currentWorkout){
+        currentWorkout.exercises.push(mkEx(ex));
+        renderWorkout();
+        document.getElementById('modal-add-ex').classList.add('hidden');
+      }
+    });
+  });
+}
+
+document.getElementById('btn-quick-create-ex').addEventListener('click',()=>{
+  openCustomExModal(true);
+});
+
+// ===================== HISTORY =====================
+let selectedHistoryId=null;
+function renderHistory(){
+  const workouts=getWorkouts().slice().reverse();
+  const el=document.getElementById('history-list');
+  if(workouts.length===0){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div>尚無訓練記錄</div></div>`;
+    return;
+  }
+  const s=getSettings();
+  el.innerHTML=workouts.map(w=>{
+    const doneSets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>!s.isWarmup&&s.done).length,0);
+    const exTags=w.exercises.slice(0,4).map(e=>`<span class="tag">${e.name}</span>`).join('');
+    return`<div class="history-card" data-wid="${w.id}">
+      <div class="history-date">${fmtDate(w.date)}</div>
+      <div class="history-name">${w.routineName||'自由訓練'}</div>
+      <div class="history-tags">${exTags}${w.exercises.length>4?`<span class="tag">+${w.exercises.length-4}</span>`:''}</div>
+      <div class="history-meta"><span>⏱ ${fmtDur(w.duration)}</span><span>💪 ${doneSets}組</span></div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.history-card').forEach(card=>{
+    card.addEventListener('click',()=>openHistoryDetail(card.dataset.wid));
+  });
+}
+
+function openHistoryDetail(wid){
+  const workouts=getWorkouts();
+  const w=workouts.find(w=>w.id===wid);
+  if(!w)return;
+  selectedHistoryId=wid;
+  const s=getSettings();
+  const prs=computePRs();
+  let html=`<div style="font-size:20px;font-weight:700">${w.routineName||'自由訓練'}</div>
+  <div style="color:var(--text2);margin-bottom:16px">${fmtDate(w.date)} · ${fmtDur(w.duration)}</div>`;
+  w.exercises.forEach(ex=>{
+    html+=`<div style="margin-bottom:12px"><div style="font-weight:700;color:var(--accent);margin-bottom:4px">${ex.name}</div>`;
+    ex.sets.filter(s2=>s2.done).forEach((set,i)=>{
+      const key=`${ex.exerciseId}`;
+      const isPR=prs[key]&&prs[key].bestWeight===set.weight&&prs[key].workoutId===wid;
+      html+=`<div style="font-size:14px;padding:3px 0">${set.isWarmup?'<span class="w-badge" style="font-size:9px">W</span> ':''}${i+1}. ${displayW(set.weight,s.unit)}${s.unit} × ${set.reps}次 ${isPR?'<span class="pr-badge">PR</span>':''}</div>`;
+    });
+    html+=`</div>`;
+  });
+  if(w.notes)html+=`<div style="background:var(--input-bg);border-radius:8px;padding:10px;font-size:13px;color:var(--text2)">${w.notes}</div>`;
+  document.getElementById('history-detail-content').innerHTML=html;
+  document.getElementById('modal-history-detail').classList.remove('hidden');
+}
+document.getElementById('modal-history-close').addEventListener('click',()=>document.getElementById('modal-history-detail').classList.add('hidden'));
+document.getElementById('modal-history-detail').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('btn-delete-workout').addEventListener('click',()=>{
+  if(!selectedHistoryId)return;
+  if(confirm('確定刪除此訓練記錄？')){
+    const workouts=getWorkouts().filter(w=>w.id!==selectedHistoryId);
+    saveWorkouts(workouts);
+    document.getElementById('modal-history-detail').classList.add('hidden');
+    renderHistory();
+  }
+});
+
+// ===================== EXERCISES PAGE =====================
+let exCat='全部';
+function renderExercises(){
+  renderExCatTabs();
+  renderExList();
+}
+function renderExCatTabs(){
+  const tabs=document.getElementById('ex-cat-tabs');
+  const cats=['全部',...CATS];
+  tabs.innerHTML=cats.map(c=>`<button class="cat-tab${exCat===c?' active':''}" data-ecat="${c}">${c}</button>`).join('');
+  tabs.querySelectorAll('[data-ecat]').forEach(b=>b.addEventListener('click',()=>{exCat=b.dataset.ecat;renderExCatTabs();renderExList();}));
+}
+function renderExList(){
+  const q=document.getElementById('ex-search').value.toLowerCase();
+  const exercises=getExercises();
+  const workouts=getWorkouts();
+  // Compute frequency
+  const freq={};
+  workouts.forEach(w=>w.exercises.forEach(e=>{freq[e.exerciseId]=(freq[e.exerciseId]||0)+1;}));
+  const filtered=exercises.filter(e=>{
+    if(exCat!=='全部'&&e.cat!==exCat)return false;
+    if(q&&!e.name.toLowerCase().includes(q))return false;
+    return true;
+  }).sort((a,b)=>(freq[b.id]||0)-(freq[a.id]||0)||(a.name.localeCompare(b.name,'zh-TW')));
+  const el=document.getElementById('ex-list');
+  if(filtered.length===0){el.innerHTML=`<div class="empty-state">找不到動作</div>`;return;}
+  el.innerHTML=filtered.map(e=>`
+    <div class="ex-row">
+      <div class="ex-info">
+        <div class="ex-row-name">${e.name}${e.custom?`<span style="font-size:10px;color:var(--accent);margin-left:6px;border:1px solid var(--accent);border-radius:4px;padding:1px 4px">自訂</span>`:`<span style="font-size:11px;color:var(--text2);margin-left:6px">${e.cat}</span>`}${freq[e.id]?`<span style="font-size:10px;color:var(--text2);margin-left:4px">(${freq[e.id]}次)</span>`:''}</div>
+        <div class="muscle-tags">${(e.muscles||[]).map(m=>`<span class="muscle-tag">${m}</span>`).join('')}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-sm btn-secondary" data-prog="${e.id}">📈</button>
+        <button class="btn btn-sm btn-red" data-delex="${e.id}">🗑</button>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('[data-prog]').forEach(b=>b.addEventListener('click',()=>openExProgress(b.dataset.prog)));
+  el.querySelectorAll('[data-delex]').forEach(b=>b.addEventListener('click',()=>{
+    const eid=b.dataset.delex;
+    const exs=getExercises();
+    const ex=exs.find(e=>e.id===eid);
+    if(!ex)return;
+    const routines=getRoutines();
+    const usedRoutines=routines.filter(r=>r.exerciseIds.includes(eid));
+    const workouts=getWorkouts();
+    const usedWorkouts=workouts.filter(w=>w.exercises.some(e=>e.exerciseId===eid)).length;
+    let msg=`確定刪除「${ex.name}」？`;
+    if(usedRoutines.length>0)msg=`「${ex.name}」已用於 ${usedRoutines.length} 個課表，刪除後課表中會移除此動作。歷史紀錄不受影響。確定刪除？`;
+    else if(usedWorkouts>0)msg=`「${ex.name}」有 ${usedWorkouts} 筆歷史記錄，刪除動作後歷史紀錄不受影響。確定刪除？`;
+    if(!confirm(msg))return;
+    // Remove from exercises
+    saveExercises(exs.filter(e=>e.id!==eid));
+    // Remove from routines
+    routines.forEach(r=>{r.exerciseIds=r.exerciseIds.filter(x=>x!==eid);});
+    saveRoutines(routines);
+    // Remove from tracked exercises in settings
+    const s=getSettings();
+    if(s.trackedExercises&&s.trackedExercises.includes(eid)){
+      s.trackedExercises=s.trackedExercises.filter(x=>x!==eid);
+      saveSettings(s);
+    }
+    renderExList();
+  }));
+}
+document.getElementById('ex-search').addEventListener('input',renderExList);
+document.getElementById('btn-add-custom-ex').addEventListener('click',()=>openCustomExModal(false));
+
+function openCustomExModal(fromWorkout){
+  const sel=document.getElementById('custom-ex-cat');
+  sel.innerHTML=CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('custom-ex-name').value='';
+  document.getElementById('custom-ex-muscles').value='';
+  document.getElementById('modal-custom-ex').classList.remove('hidden');
+  document.getElementById('custom-ex-save').onclick=()=>{
+    const name=document.getElementById('custom-ex-name').value.trim();
+    if(!name)return;
+    const cat=document.getElementById('custom-ex-cat').value;
+    const muscles=document.getElementById('custom-ex-muscles').value.split(',').map(m=>m.trim()).filter(Boolean);
+    const ex={id:'c'+uid(),name,cat,muscles,custom:true};
+    const exs=getExercises();exs.push(ex);saveExercises(exs);
+    document.getElementById('modal-custom-ex').classList.add('hidden');
+    if(fromWorkout&&currentWorkout){
+      currentWorkout.exercises.push(mkEx(ex));renderWorkout();
+      document.getElementById('modal-add-ex').classList.add('hidden');
+    }else{renderExList();}
   };
-  const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-  const manifestURL = URL.createObjectURL(manifestBlob);
-  const link = document.createElement('link');
-  link.rel = 'manifest'; link.href = manifestURL;
-  document.head.appendChild(link);
+}
+document.getElementById('custom-ex-cancel').addEventListener('click',()=>document.getElementById('modal-custom-ex').classList.add('hidden'));
+document.getElementById('modal-custom-ex').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('btn-reset-ex-lib').addEventListener('click',()=>{
+  if(!confirm('將預設動作庫中已刪除的動作補回（自訂動作不受影響）。確定重設？'))return;
+  const existing=getExercises();
+  const existingIds=new Set(existing.map(e=>e.id));
+  const toAdd=DEFAULT_EXERCISES.filter(e=>!existingIds.has(e.id));
+  if(toAdd.length===0){alert('所有預設動作都在，無需重設。');return;}
+  saveExercises([...existing,...toAdd]);
+  renderExList();
+  alert(`已補回 ${toAdd.length} 個預設動作。`);
+});
 
-  // 3. 動態注入 Service Worker（blob URL，讓頁面離線也能用）
-  const swCode = `
-const CACHE = 'workout-v1';
-const URLS  = [self.registration.scope];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS)));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-  self.clients.claim();
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-    if(res.ok){ const clone=res.clone(); caches.open(CACHE).then(c=>c.put(e.request,clone)); }
-    return res;
-  }).catch(() => caches.match(e.request))));
-});
-  `;
-  if('serviceWorker' in navigator){
-    const swBlob = new Blob([swCode], {type:'text/javascript'});
-    const swURL  = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swURL, {scope: './'})
-      .catch(()=>{}); // 部分瀏覽器限制 blob SW，靜默略過
+// Exercise progress modal
+let exProgressChart=null;
+function openExProgress(exId){
+  const exercises=getExercises();
+  const ex=exercises.find(e=>e.id===exId);
+  if(!ex)return;
+  document.getElementById('ex-progress-title').textContent=ex.name+' 進步';
+  document.getElementById('modal-ex-progress').classList.remove('hidden');
+  setTimeout(()=>renderExProgressChart(exId,'chart-ex-progress-modal'),100);
+}
+document.getElementById('ex-progress-close').addEventListener('click',()=>document.getElementById('modal-ex-progress').classList.add('hidden'));
+document.getElementById('modal-ex-progress').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+
+// ===================== CHART HELPERS (section F) =====================
+function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#007aff';}
+const linePt={tension:.35,borderWidth:2.5,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#fff',pointBorderWidth:2,spanGaps:true};
+function lineGradient(canvas,colorKey){
+  try{
+    const ctx=canvas.getContext('2d');
+    const g=ctx.createLinearGradient(0,0,0,canvas.height||200);
+    const base=colorKey==='orange'?cssVar('--orange'):colorKey==='green'?cssVar('--green'):cssVar('--accent');
+    // rgba fade — convert hex to rgba
+    const rgb=hexToRgb(base);
+    g.addColorStop(0,`rgba(${rgb},0.28)`);
+    g.addColorStop(1,`rgba(${rgb},0)`);
+    return g;
+  }catch(e){return 'rgba(0,122,255,0.1)';}
+}
+function hexToRgb(hex){
+  hex=hex.replace('#','');
+  if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+  const n=parseInt(hex,16);
+  if(isNaN(n))return '0,122,255';
+  return `${(n>>16)&255},${(n>>8)&255},${n&255}`;
+}
+function initChartTheme(){
+  if(typeof Chart==='undefined')return;
+  Chart.defaults.color=cssVar('--text2');
+  Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif";
+  Chart.defaults.font.size=12;
+}
+function commonScales(beginAtZero){
+  const grid=cssVar('--grid-line');
+  return{
+    x:{grid:{display:false},ticks:{color:cssVar('--text2'),maxRotation:0,autoSkip:true,maxTicksLimit:7}},
+    y:{beginAtZero:!!beginAtZero,grid:{color:grid,drawBorder:false},border:{display:false},ticks:{color:cssVar('--text2'),padding:8}}
+  };
+}
+function commonPlugins(showLegend){
+  return{
+    legend:showLegend?{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:16,boxWidth:8,color:cssVar('--text2')}}:{display:false},
+    tooltip:{
+      backgroundColor:'rgba(30,30,32,0.95)',titleColor:'#fff',bodyColor:'#fff',
+      cornerRadius:10,padding:10,displayColors:false,titleFont:{weight:'600'}
+    }
+  };
+}
+function lineCfg(data,opts){
+  opts=opts||{};
+  return{
+    type:'line',data,
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:8,right:6,left:2,bottom:2}},
+      interaction:{mode:'index',intersect:false},
+      plugins:commonPlugins(opts.legend),
+      scales:commonScales(opts.beginAtZero)
+    }
+  };
+}
+function barCfg(labels,data,highlightIdx){
+  const accent=cssVar('--accent');
+  const muted=`rgba(${hexToRgb(accent)},0.35)`;
+  const colors=data.map((_,i)=>i===highlightIdx?accent:muted);
+  return{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:6,borderSkipped:false,maxBarThickness:44}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:8}},
+      plugins:commonPlugins(false),
+      scales:{
+        x:{grid:{display:false},ticks:{color:cssVar('--text2')}},
+        y:{beginAtZero:true,grid:{color:cssVar('--grid-line'),drawBorder:false},border:{display:false},ticks:{color:cssVar('--text2'),precision:0,padding:8}}
+      }
+    }
+  };
+}
+// Returns true if a chart can be drawn; otherwise paints a placeholder message.
+function chartReady(canvas,hasData,emptyMsg){
+  if(!canvas)return false;
+  const holder=canvas.parentElement;
+  let ph=holder.querySelector('.chart-ph');
+  const paint=(msg)=>{
+    canvas.style.visibility='hidden';
+    if(!ph){ph=document.createElement('div');ph.className='chart-ph';holder.appendChild(ph);}
+    ph.textContent=msg;ph.style.display='flex';
+  };
+  const clear=()=>{canvas.style.visibility='visible';if(ph)ph.style.display='none';};
+  if(typeof Chart==='undefined'){paint('圖表載入中…（離線時無法載入圖表）');return false;}
+  if(!hasData){paint(emptyMsg||'尚無資料');return false;}
+  clear();return true;
+}
+
+function renderExProgressChart(exId,canvasId){
+  const s=getSettings();
+  const workouts=getWorkouts().filter(w=>w.exercises.some(e=>e.exerciseId===exId)).sort((a,b)=>a.date.localeCompare(b.date));
+  const labels=workouts.map(w=>w.date.slice(5));
+  const maxData=[],ormData=[];
+  workouts.forEach(w=>{
+    const ex=w.exercises.find(e=>e.exerciseId===exId);
+    const working=ex.sets.filter(s2=>!s2.isWarmup&&s2.done&&s2.weight>0);
+    const best=Math.max(...working.map(s2=>s2.weight),0);
+    let bestOrm=0;working.forEach(st=>{const o=oneRM(st.weight,st.reps);if(o>bestOrm)bestOrm=o;});
+    maxData.push(best>0?displayW(best,s.unit):null);
+    ormData.push(bestOrm>0?Math.round(displayW(bestOrm,s.unit)*10)/10:null);
+  });
+  const canvas=document.getElementById(canvasId);
+  if(!chartReady(canvas,workouts.length>0,'尚無此動作的訓練紀錄')){if(exProgressChart){exProgressChart.destroy();exProgressChart=null;}return;}
+  if(exProgressChart)exProgressChart.destroy();
+  exProgressChart=new Chart(canvas.getContext('2d'),lineCfg({
+    labels,
+    datasets:[
+      {label:`最大重量(${s.unit})`,data:maxData,borderColor:cssVar('--accent'),backgroundColor:lineGradient(canvas,'accent'),fill:true,...linePt},
+      {label:`預估1RM(${s.unit})`,data:ormData,borderColor:cssVar('--text2'),borderDash:[5,4],backgroundColor:'transparent',fill:false,...linePt,pointRadius:0,pointHoverRadius:4,borderWidth:1.5}
+    ]
+  },{legend:true,beginAtZero:false}));
+}
+
+// ===================== STATS =====================
+let chartMuscle=null,chartProgress=null,chartMonthly=null;
+function renderStats(){
+  renderStatsOverview();
+  renderPRGrid();
+  setTimeout(()=>{
+    renderMusclChart();
+    renderProgressChart();
+    renderMonthlyChart();
+    populateProgressSelect();
+  },100);
+}
+
+function computeStreak(){
+  const workouts=getWorkouts();
+  const days=new Set(workouts.map(w=>w.date));
+  const todayStr=today();
+  let streak=0,d=new Date();
+  // start from today or yesterday
+  if(!days.has(todayStr))d.setDate(d.getDate()-1);
+  while(true){
+    const ds=d.toISOString().slice(0,10);
+    if(days.has(ds)){streak++;d.setDate(d.getDate()-1);}else break;
   }
-})();
+  // Longest streak
+  let longest=0,cur=0,prev=null;
+  [...days].sort().forEach(ds=>{
+    if(prev){
+      const diff=(new Date(ds)-new Date(prev))/(86400000);
+      if(diff===1)cur++;else cur=1;
+    }else cur=1;
+    if(cur>longest)longest=cur;
+    prev=ds;
+  });
+  return{streak,longest};
+}
+function computePRs(){
+  const workouts=getWorkouts();
+  const prs={};
+  workouts.forEach(w=>{
+    w.exercises.forEach(ex=>{
+      ex.sets.filter(s=>!s.isWarmup&&s.done&&s.weight>0).forEach(set=>{
+        if(!prs[ex.exerciseId]||set.weight>prs[ex.exerciseId].bestWeight){
+          prs[ex.exerciseId]={bestWeight:set.weight,bestReps:set.reps,workoutId:w.id};
+        }
+      });
+    });
+  });
+  return prs;
+}
+const STAT_CARD_DEFS={
+  weekCount:{label:'本週次數',compute(w,s){
+    const now=new Date(),ws=new Date(now);ws.setDate(now.getDate()-now.getDay());
+    return w.filter(x=>x.date>=ws.toISOString().slice(0,10)).length;
+  }},
+  monthCount:{label:'本月次數',compute(w,s){return w.filter(x=>x.date.startsWith(today().slice(0,7))).length;}},
+  totalWorkouts:{label:'累計次數',compute(w,s){return w.length;}},
+  daysSinceLast:{label:'距上次訓練',compute(w,s){
+    if(!w.length)return'-';
+    const last=w.slice().sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const diff=Math.floor((new Date(today())-new Date(last.date))/86400000);
+    return diff===0?'今天':diff+'天';
+  }},
+  sbdTotal:{label:'三大力量總和',compute(w,s){
+    const prs=computePRs();
+    const squat=prs['e7']?prs['e7'].bestWeight:0;
+    const bench=prs['e1']?prs['e1'].bestWeight:0;
+    const dead=prs['e8']?prs['e8'].bestWeight:0;
+    const total=squat+bench+dead;
+    return total>0?displayW(total,s.unit)+s.unit:'-';
+  }},
+  monthVolume:{label:'本月總訓練量',compute(w,s){
+    const ms=today().slice(0,7);
+    let vol=0;
+    w.filter(x=>x.date.startsWith(ms)).forEach(wo=>wo.exercises.forEach(ex=>ex.sets.filter(st=>st.done&&!st.isWarmup).forEach(st=>{vol+=st.weight*st.reps;})));
+    return vol>0?Math.round(displayW(vol,s.unit))+s.unit:'-';
+  }},
+  avgDuration:{label:'平均時長',compute(w,s){
+    if(!w.length)return'-';
+    return fmtDur(Math.round(w.reduce((a,x)=>a+x.duration,0)/w.length));
+  }},
+  streak:{label:'連續訓練天數',compute(w,s){return computeStreak().streak+'天';}},
+};
+
+function renderStatsOverview(){
+  const s=getSettings();
+  const workouts=getWorkouts();
+  const cards=s.statCards||['totalWorkouts','sbdTotal','monthVolume'];
+  const el=document.getElementById('stats-overview');
+  el.innerHTML=`<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">概覽</div>
+    <button class="btn btn-sm btn-secondary" id="btn-customize-stats" style="font-size:11px;padding:4px 8px">自訂</button>
+  </div>`+cards.map(key=>{
+    const def=STAT_CARD_DEFS[key];
+    if(!def)return'';
+    const val=def.compute(workouts,s);
+    return`<div class="stat-ov-card"><div class="stat-ov-val" style="font-size:${String(val).length>6?'18px':'28px'}">${val}</div><div class="stat-ov-label">${def.label}</div></div>`;
+  }).join('');
+  const btn=document.getElementById('btn-customize-stats');
+  if(btn)btn.addEventListener('click',openStatCardPicker);
+}
+
+function openStatCardPicker(){
+  const s=getSettings();
+  let chosen=[...(s.statCards||['totalWorkouts','sbdTotal','monthVolume'])];
+  const keys=Object.keys(STAT_CARD_DEFS);
+  // Build a simple modal using alert-style inline approach — reuse modal-tracked
+  const el=document.getElementById('tracked-picker');
+  const modal=document.getElementById('modal-tracked');
+  document.querySelector('#modal-tracked .modal-title').textContent='選擇統計卡片（最多3個）';
+  const render=()=>{
+    el.innerHTML=keys.map(k=>{
+      const def=STAT_CARD_DEFS[k];
+      const checked=chosen.includes(k);
+      return`<div style="display:flex;align-items:center;padding:10px;border-bottom:1px solid var(--sep)">
+        <input type="checkbox" id="sc-${k}" ${checked?'checked':''} ${!checked&&chosen.length>=3?'disabled':''} style="margin-right:10px">
+        <label for="sc-${k}" style="flex:1">${def.label}</label>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change',function(){
+        const k=this.id.replace('sc-','');
+        if(this.checked){if(chosen.length<3)chosen.push(k);}
+        else chosen=chosen.filter(x=>x!==k);
+        render();
+      });
+    });
+  };
+  render();
+  modal.classList.remove('hidden');
+  document.getElementById('tracked-done').onclick=()=>{
+    s.statCards=chosen;saveSettings(s);
+    modal.classList.add('hidden');
+    renderStatsOverview();
+  };
+}
+function renderPRGrid(){
+  const s=getSettings();
+  const tracked=s.trackedExercises||[];
+  const prs=computePRs();
+  const exercises=getExercises();
+  const el=document.getElementById('pr-grid');
+  if(tracked.length===0){el.innerHTML=`<div style="grid-column:1/-1;color:var(--text2);text-align:center;padding:16px">尚未設定追蹤動作</div>`;return;}
+  el.innerHTML=tracked.map(eid=>{
+    const ex=exercises.find(e=>e.id===eid);if(!ex)return'';
+    const pr=prs[eid];
+    const w=pr?displayW(pr.bestWeight,s.unit):'-';
+    const orm=pr?Math.round(oneRM(pr.bestWeight,pr.bestReps)*10)/10:'-';
+    return`<div class="pr-card">
+      <div class="pr-name">${ex.name}</div>
+      <div class="pr-weight">${w} ${s.unit}</div>
+      <div class="pr-1rm">預估1RM: ${orm!=='-'?displayW(orm,s.unit)+s.unit:'-'}</div>
+    </div>`;
+  }).join('');
+}
+function renderMusclChart(){
+  const workouts=getWorkouts();
+  const now=new Date();
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
+  const weekStr=weekStart.toISOString().slice(0,10);
+  const weekWo=workouts.filter(w=>w.date>=weekStr);
+  const exercises=getExercises();
+  const muscleSets={};
+  weekWo.forEach(w=>w.exercises.forEach(ex=>{
+    const exDef=exercises.find(e=>e.id===ex.exerciseId);
+    const muscles=(exDef&&exDef.muscles)||[];
+    const sets=ex.sets.filter(s=>!s.isWarmup&&s.done).length;
+    muscles.forEach(m=>{muscleSets[m]=(muscleSets[m]||0)+sets;});
+    if(muscles.length===0){muscleSets[ex.cat]=(muscleSets[ex.cat]||0)+sets;}
+  }));
+  const labels=Object.keys(muscleSets);
+  const data=labels.map(k=>muscleSets[k]);
+  const canvas=document.getElementById('chart-muscle');
+  if(!chartReady(canvas,labels.length>0,'本週尚無完成的訓練組')){if(chartMuscle){chartMuscle.destroy();chartMuscle=null;}return;}
+  if(chartMuscle)chartMuscle.destroy();
+  chartMuscle=new Chart(canvas.getContext('2d'),barCfg(labels,data,-1));
+}
+function populateProgressSelect(){
+  const exercises=getExercises();
+  const workouts=getWorkouts();
+  const used=new Set(workouts.flatMap(w=>w.exercises.map(e=>e.exerciseId)));
+  const sel=document.getElementById('progress-ex-select');
+  const prevVal=sel.value;
+  sel.innerHTML=exercises.filter(e=>used.has(e.id)).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  if(prevVal&&[...sel.options].some(o=>o.value===prevVal))sel.value=prevVal;
+  renderProgressChart();
+}
+function renderProgressChart(){
+  const sel=document.getElementById('progress-ex-select');
+  const canvas=document.getElementById('chart-progress');
+  if(!sel||!sel.value){
+    if(!chartReady(canvas,false,'尚無訓練紀錄可分析')){if(chartProg2){chartProg2.destroy();chartProg2=null;}}
+    return;
+  }
+  renderExProgressChart2(sel.value,'chart-progress');
+}
+let chartProg2=null;
+function renderExProgressChart2(exId,canvasId){
+  const s=getSettings();
+  const workouts=getWorkouts().filter(w=>w.exercises.some(e=>e.exerciseId===exId)).sort((a,b)=>a.date.localeCompare(b.date));
+  const labels=workouts.map(w=>w.date.slice(5));
+  const maxData=[],ormData=[];
+  workouts.forEach(w=>{
+    const ex=w.exercises.find(e=>e.exerciseId===exId);
+    const working=ex.sets.filter(s2=>!s2.isWarmup&&s2.done&&s2.weight>0);
+    const best=Math.max(...working.map(s2=>s2.weight),0);
+    let bestOrm=0;working.forEach(st=>{const o=oneRM(st.weight,st.reps);if(o>bestOrm)bestOrm=o;});
+    maxData.push(best>0?displayW(best,s.unit):null);
+    ormData.push(bestOrm>0?Math.round(displayW(bestOrm,s.unit)*10)/10:null);
+  });
+  const canvas=document.getElementById(canvasId);
+  if(!chartReady(canvas,workouts.length>0,'尚無此動作的訓練紀錄')){if(chartProg2){chartProg2.destroy();chartProg2=null;}return;}
+  if(chartProg2)chartProg2.destroy();
+  chartProg2=new Chart(canvas.getContext('2d'),lineCfg({
+    labels,
+    datasets:[
+      {label:`最大重量(${s.unit})`,data:maxData,borderColor:cssVar('--accent'),backgroundColor:lineGradient(canvas,'accent'),fill:true,...linePt},
+      {label:`預估1RM(${s.unit})`,data:ormData,borderColor:cssVar('--text2'),borderDash:[5,4],backgroundColor:'transparent',fill:false,...linePt,pointRadius:0,pointHoverRadius:4,borderWidth:1.5}
+    ]
+  },{legend:true,beginAtZero:false}));
+}
+document.getElementById('progress-ex-select').addEventListener('change',renderProgressChart);
+function renderMonthlyChart(){
+  const workouts=getWorkouts();
+  const now=new Date();
+  const months=[];const counts=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const ms=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months.push(`${d.getMonth()+1}月`);
+    counts.push(workouts.filter(w=>w.date.startsWith(ms)).length);
+  }
+  const canvas=document.getElementById('chart-monthly');
+  if(!chartReady(canvas,workouts.length>0,'尚無訓練紀錄')){if(chartMonthly){chartMonthly.destroy();chartMonthly=null;}return;}
+  if(chartMonthly)chartMonthly.destroy();
+  chartMonthly=new Chart(canvas.getContext('2d'),barCfg(months,counts,5)); // highlight current month
+}
+
+// ===================== PROFILE =====================
+function renderProfile(){
+  const p=getProfile();
+  const s=getSettings();
+  document.getElementById('p-height').value=p.height||'';
+  document.getElementById('p-birth').value=p.birthYear||'';
+  document.getElementById('p-gender').value=p.gender||'';
+  document.getElementById('toggle-dark').checked=s.theme==='dark';
+  document.getElementById('rest-time-input').value=s.restTime>0?s.restTime:'';
+  document.getElementById('no-rest-check').checked=s.restTime===0;
+  document.getElementById('btn-unit-kg').className='btn btn-sm'+(s.unit==='kg'?' btn-primary':' btn-secondary');
+  document.getElementById('btn-unit-lb').className='btn btn-sm'+(s.unit==='lb'?' btn-primary':' btn-secondary');
+  renderMeasList();
+  renderTrackedList();
+  setTimeout(renderBodyCharts,100);
+}
+document.getElementById('btn-save-profile').addEventListener('click',()=>{
+  const p=getProfile();
+  p.height=parseFloat(document.getElementById('p-height').value)||null;
+  p.birthYear=parseInt(document.getElementById('p-birth').value)||null;
+  p.gender=document.getElementById('p-gender').value||null;
+  saveProfile(p);
+  alert('已儲存');
+});
+document.getElementById('toggle-dark').addEventListener('change',function(){
+  applyTheme(this.checked?'dark':'light');
+});
+document.getElementById('btn-unit-kg').addEventListener('click',()=>switchUnit('kg'));
+document.getElementById('btn-unit-lb').addEventListener('click',()=>switchUnit('lb'));
+function switchUnit(unit){
+  const s=getSettings();
+  if(s.unit===unit)return;
+  // All weights are stored internally in kg; displayW() handles the
+  // conversion at render time. Switching units only changes the flag —
+  // never mutate the stored kg values (doing so double-converts).
+  s.unit=unit;saveSettings(s);
+  renderProfile();
+  toast('已切換為 '+unit.toUpperCase());
+}
+document.getElementById('rest-time-input').addEventListener('change',function(){
+  const s=getSettings();s.restTime=parseInt(this.value)||0;saveSettings(s);
+});
+document.getElementById('no-rest-check').addEventListener('change',function(){
+  const s=getSettings();
+  if(this.checked){s.restTime=0;document.getElementById('rest-time-input').value='';}
+  else{s.restTime=90;document.getElementById('rest-time-input').value=90;}
+  saveSettings(s);
+});
+
+// Measurements
+function renderMeasList(){
+  const s=getSettings();
+  const meas=getMeasurements().slice().reverse();
+  const el=document.getElementById('meas-list');
+  if(meas.length===0){el.innerHTML=`<div style="color:var(--text2);font-size:13px">尚無紀錄</div>`;return;}
+  el.innerHTML=meas.slice(0,10).map(m=>`
+    <div class="meas-card">
+      <div class="meas-date tnum">${m.date}</div>
+      <div class="meas-vals tnum">${m.weight!=null?'體重 '+displayW(m.weight,s.unit)+s.unit:''}${m.bodyFat!=null?' · 體脂 '+m.bodyFat+'%':''}${m.skeletalMuscle!=null?' · 骨骼肌 '+displayW(m.skeletalMuscle,s.unit)+s.unit:''}</div>
+      <button class="btn btn-sm btn-red" data-delm="${m.id}" aria-label="刪除紀錄">🗑</button>
+    </div>`).join('');
+  el.querySelectorAll('[data-delm]').forEach(b=>b.addEventListener('click',()=>{
+    const meas=getMeasurements().filter(m=>m.id!==b.dataset.delm);
+    saveMeasurements(meas);renderMeasList();renderBodyCharts();
+  }));
+}
+document.getElementById('btn-add-meas').addEventListener('click',()=>{
+  const s=getSettings();
+  document.getElementById('meas-weight-label').textContent=`體重 (${s.unit})`;
+  document.getElementById('meas-sm-label').textContent=`骨骼肌 (${s.unit})`;
+  document.getElementById('meas-date').value=today();
+  document.getElementById('meas-weight').value='';
+  document.getElementById('meas-bf').value='';
+  document.getElementById('meas-sm').value='';
+  document.getElementById('modal-measurement').classList.remove('hidden');
+});
+document.getElementById('meas-cancel').addEventListener('click',()=>document.getElementById('modal-measurement').classList.add('hidden'));
+document.getElementById('modal-measurement').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('meas-save').addEventListener('click',()=>{
+  const s=getSettings();
+  const date=document.getElementById('meas-date').value;
+  const wRaw=parseFloat(document.getElementById('meas-weight').value);
+  const weight=isNaN(wRaw)?null:toKg(wRaw,s.unit); // store body weight in kg
+  const bodyFat=parseFloat(document.getElementById('meas-bf').value)||null;
+  const smRaw=parseFloat(document.getElementById('meas-sm').value);
+  const skeletalMuscle=isNaN(smRaw)?null:toKg(smRaw,s.unit); // store skeletal muscle mass in kg
+  if(!date)return;
+  const meas=getMeasurements();
+  meas.push({id:uid(),date,weight,bodyFat,skeletalMuscle});
+  saveMeasurements(meas);
+  document.getElementById('modal-measurement').classList.add('hidden');
+  renderMeasList();renderBodyCharts();
+});
+
+let chartWeight=null,chartBF=null;
+function renderBodyCharts(){
+  const s=getSettings();
+  const meas=getMeasurements().sort((a,b)=>a.date.localeCompare(b.date));
+  const labels=meas.map(m=>m.date.slice(5));
+  const hasData=meas.length>0;
+  // Weight + skeletal muscle (both kg)
+  const ctxW=document.getElementById('chart-weight');
+  if(ctxW){
+    if(!chartReady(ctxW,hasData,'尚無身體紀錄'))chartWeight=null;
+    else{
+      const g=lineGradient(ctxW,'accent');
+      if(chartWeight)chartWeight.destroy();
+      chartWeight=new Chart(ctxW.getContext('2d'),lineCfg({
+        labels,
+        datasets:[
+          {label:'體重('+s.unit+')',data:meas.map(m=>m.weight!=null?displayW(m.weight,s.unit):null),borderColor:cssVar('--accent'),backgroundColor:g,fill:true,...linePt},
+          {label:'骨骼肌('+s.unit+')',data:meas.map(m=>m.skeletalMuscle!=null?displayW(m.skeletalMuscle,s.unit):null),borderColor:cssVar('--green'),backgroundColor:'transparent',fill:false,...linePt}
+        ]
+      },{legend:true,beginAtZero:false}));
+    }
+  }
+  // Body fat % (unit-independent)
+  const ctxBF=document.getElementById('chart-bf');
+  if(ctxBF){
+    const hasBF=meas.some(m=>m.bodyFat!=null);
+    if(!chartReady(ctxBF,hasBF,'尚無體脂紀錄'))chartBF=null;
+    else{
+      if(chartBF)chartBF.destroy();
+      chartBF=new Chart(ctxBF.getContext('2d'),lineCfg({
+        labels,
+        datasets:[{label:'體脂 %',data:meas.map(m=>m.bodyFat),borderColor:cssVar('--orange'),backgroundColor:lineGradient(ctxBF,'orange'),fill:true,...linePt}]
+      },{legend:true,beginAtZero:false}));
+    }
+  }
+}
+
+// Tracked exercises
+function renderTrackedList(){
+  const s=getSettings();
+  const exercises=getExercises();
+  const tracked=s.trackedExercises||[];
+  document.getElementById('tracked-ex-list').innerHTML=tracked.map(eid=>{
+    const ex=exercises.find(e=>e.id===eid);
+    return ex?`<span style="background:var(--accent);color:#fff;padding:4px 10px;border-radius:8px;font-size:12px">${ex.name}</span>`:'';
+  }).join('');
+}
+document.getElementById('btn-edit-tracked').addEventListener('click',()=>{
+  document.querySelector('#modal-tracked .modal-title').textContent='選擇追蹤動作（最多6個）';
+  const s=getSettings();
+  const exercises=getExercises();
+  let tracked=[...(s.trackedExercises||[])];
+  const el=document.getElementById('tracked-picker');
+  const render=()=>{
+    el.innerHTML=exercises.map(e=>`
+      <div style="display:flex;align-items:center;padding:10px;border-bottom:1px solid var(--sep)">
+        <input type="checkbox" id="tp-${e.id}" ${tracked.includes(e.id)?'checked':''} ${!tracked.includes(e.id)&&tracked.length>=6?'disabled':''} style="margin-right:10px">
+        <label for="tp-${e.id}" style="flex:1">${e.name} <span style="color:var(--text2);font-size:12px">${e.cat}</span></label>
+      </div>`).join('');
+    el.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change',function(){
+        const eid=this.id.replace('tp-','');
+        if(this.checked){if(tracked.length<6)tracked.push(eid);}
+        else tracked=tracked.filter(x=>x!==eid);
+        render();
+      });
+    });
+  };
+  render();
+  document.getElementById('modal-tracked').classList.remove('hidden');
+  document.getElementById('tracked-done').onclick=()=>{
+    s.trackedExercises=tracked;saveSettings(s);
+    document.getElementById('modal-tracked').classList.add('hidden');
+    renderTrackedList();
+  };
+});
+document.getElementById('modal-tracked').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+
+// ===================== ROUTINE MODAL =====================
+let editRoutineId=null;
+let routineCat='全部';
+let routineSelectedIds=[];
+function openRoutineModal(routineId){
+  editRoutineId=routineId;
+  const routines=getRoutines();
+  const r=routineId?routines.find(r=>r.id===routineId):null;
+  document.getElementById('routine-modal-title').textContent=r?'編輯訓練計畫':'新增訓練計畫';
+  document.getElementById('routine-name-input').value=r?r.name:'';
+  routineSelectedIds=r?[...r.exerciseIds]:[];
+  routineCat='全部';
+  renderRoutineCatTabs();
+  renderRoutineExList();
+  renderRoutineSelected();
+  document.getElementById('modal-routine').classList.remove('hidden');
+}
+function renderRoutineCatTabs(){
+  const tabs=document.getElementById('routine-cat-tabs');
+  const cats=['全部',...CATS];
+  tabs.innerHTML=cats.map(c=>`<button class="cat-tab${routineCat===c?' active':''}" data-rcat="${c}">${c}</button>`).join('');
+  tabs.querySelectorAll('[data-rcat]').forEach(b=>b.addEventListener('click',()=>{routineCat=b.dataset.rcat;renderRoutineCatTabs();renderRoutineExList();}));
+}
+function renderRoutineExList(){
+  const exercises=getExercises().filter(e=>routineCat==='全部'||e.cat===routineCat);
+  document.getElementById('routine-ex-list').innerHTML=exercises.map(e=>`
+    <div style="display:flex;align-items:center;padding:8px">
+      <input type="checkbox" id="re-${e.id}" ${routineSelectedIds.includes(e.id)?'checked':''} style="margin-right:8px">
+      <label for="re-${e.id}" style="flex:1;font-size:14px">${e.name}<span style="color:var(--text2);font-size:12px;margin-left:6px">${e.cat}</span></label>
+    </div>`).join('');
+  document.getElementById('routine-ex-list').querySelectorAll('input').forEach(cb=>{
+    cb.addEventListener('change',function(){
+      const eid=this.id.replace('re-','');
+      if(this.checked){if(!routineSelectedIds.includes(eid))routineSelectedIds.push(eid);}
+      else routineSelectedIds=routineSelectedIds.filter(x=>x!==eid);
+      renderRoutineSelected();
+    });
+  });
+}
+function renderRoutineSelected(){
+  const exercises=getExercises();
+  document.getElementById('routine-selected-list').innerHTML=routineSelectedIds.map(id=>{
+    const ex=exercises.find(e=>e.id===id);
+    return ex?`<span style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:6px;font-size:12px">${ex.name}</span>`:'';
+  }).join('');
+}
+document.getElementById('routine-cancel').addEventListener('click',()=>document.getElementById('modal-routine').classList.add('hidden'));
+document.getElementById('modal-routine').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('routine-save').addEventListener('click',()=>{
+  const name=document.getElementById('routine-name-input').value.trim();
+  if(!name)return;
+  const routines=getRoutines();
+  if(editRoutineId){
+    const r=routines.find(r=>r.id===editRoutineId);
+    if(r){r.name=name;r.exerciseIds=routineSelectedIds;}
+  }else{
+    routines.push({id:uid(),name,exerciseIds:routineSelectedIds});
+  }
+  saveRoutines(routines);
+  document.getElementById('modal-routine').classList.add('hidden');
+  renderRoutineList();
+});
+
+// ===================== DATA MANAGEMENT =====================
+document.getElementById('btn-export').addEventListener('click',()=>{
+  const data={settings:getSettings(),profile:getProfile(),measurements:getMeasurements(),exercises:getExercises(),routines:getRoutines(),workouts:getWorkouts(),exportDate:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`健身備份_${today()}.json`;a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-file').addEventListener('change',function(){
+  const file=this.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.settings)saveSettings(data.settings);
+      if(data.profile)saveProfile(data.profile);
+      if(data.measurements)saveMeasurements(data.measurements);
+      if(data.exercises)saveExercises(data.exercises);
+      if(data.routines)saveRoutines(data.routines);
+      if(data.workouts)saveWorkouts(data.workouts);
+      alert('匯入成功！');
+      location.reload();
+    }catch{alert('匯入失敗，請確認檔案格式');}
+  };
+  reader.readAsText(file);
+  this.value='';
+});
+document.getElementById('btn-share-last').addEventListener('click',()=>{
+  const workouts=getWorkouts();
+  if(workouts.length===0){alert('尚無訓練記錄');return;}
+  generateShareImage(workouts[workouts.length-1]);
+});
+
+// ===================== SHARE IMAGE =====================
+function generateShareImage(wo){
+  const canvas=document.getElementById('share-canvas');
+  canvas.width=400;canvas.height=600;
+  const ctx=canvas.getContext('2d');
+  const s=getSettings();
+  // Background
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,400,600);
+  ctx.fillStyle='#007aff';ctx.fillRect(0,0,400,8);
+  // Title
+  ctx.fillStyle='#000';ctx.font='bold 22px -apple-system,sans-serif';ctx.textAlign='left';
+  ctx.fillText(wo.routineName||'訓練',20,50);
+  ctx.fillStyle='#6e6e73';ctx.font='14px -apple-system,sans-serif';
+  ctx.fillText(fmtDate(wo.date),20,72);
+  ctx.fillText(`時長: ${fmtDur(wo.duration)}`,20,92);
+  // Line
+  ctx.strokeStyle='#e5e5ea';ctx.beginPath();ctx.moveTo(20,108);ctx.lineTo(380,108);ctx.stroke();
+  let y=130;
+  wo.exercises.forEach(ex=>{
+    if(y>540)return;
+    ctx.fillStyle='#007aff';ctx.font='bold 15px -apple-system,sans-serif';
+    ctx.fillText(ex.name,20,y);y+=4;
+    ex.sets.filter(s2=>s2.done&&!s2.isWarmup).forEach((set,i)=>{
+      if(y>550)return;
+      ctx.fillStyle='#333';ctx.font='13px -apple-system,sans-serif';
+      ctx.fillText(`  ${i+1}. ${displayW(set.weight,s.unit)}${s.unit} × ${set.reps}次`,20,y+18);y+=22;
+    });
+    y+=8;
+  });
+  // Footer
+  ctx.fillStyle='#aeaeb2';ctx.font='12px -apple-system,sans-serif';ctx.textAlign='center';
+  ctx.fillText('健身紀錄 App',200,580);
+  // Download
+  const url=canvas.toDataURL('image/png');
+  const a=document.createElement('a');a.href=url;a.download=`訓練_${wo.date}.png`;a.click();
+}
+
+// ===================== INIT =====================
+function init(){
+  initTheme();
+  initPWA();
+  getExercises(); // ensure defaults loaded
+  renderHome();
+  resumeActiveWorkout();
+}
+function resumeActiveWorkout(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem('activeWorkout'));}catch(e){}
+  if(!saved||!saved.exercises)return;
+  if(confirm('發現一個未完成的訓練，要繼續嗎？')){
+    currentWorkout=saved;
+    beginSession();
+  }else{
+    clearActive();
+  }
+}
+window.addEventListener('beforeunload',function(e){
+  if(currentWorkout){e.preventDefault();e.returnValue='';}
+});
+init();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer onload="
+  if(currentPage==='stats')renderStats();
+  if(currentPage==='profile')renderBodyCharts();
+"></script>
 </body>
 </html>
