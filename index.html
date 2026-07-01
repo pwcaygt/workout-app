@@ -31,9 +31,9 @@ body{display:flex;flex-direction:column;overflow:hidden}
   padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 .tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 /* PAGES */
-.page{display:none;flex:1;overflow-y:auto;padding:0 0 96px;-webkit-overflow-scrolling:touch}
+.page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 96px;-webkit-overflow-scrolling:touch}
 .page.active{display:block;animation:page-in .2s ease}
-@keyframes page-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes page-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important;transition:none !important}
 }
@@ -542,7 +542,10 @@ body{display:flex;flex-direction:column;overflow:hidden}
       <input class="form-input" id="routine-name-input" placeholder="例：胸背日">
     </div>
     <div class="form-group">
-      <div class="form-label">選擇動作</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="form-label" style="margin:0">選擇動作</div>
+        <button class="btn btn-sm btn-secondary" id="routine-add-custom" style="font-size:13px;padding:5px 12px">＋ 自訂動作</button>
+      </div>
       <div class="cat-tabs" id="routine-cat-tabs" style="padding:0 0 8px"></div>
       <div id="routine-ex-list" style="max-height:40vh;overflow-y:auto;border:1px solid var(--sep);border-radius:10px;padding:4px"></div>
     </div>
@@ -1410,7 +1413,7 @@ function renderModalExList(){
 }
 
 document.getElementById('btn-quick-create-ex').addEventListener('click',()=>{
-  openCustomExModal(true);
+  openCustomExModal('workout');
 });
 
 // ===================== HISTORY =====================
@@ -1538,9 +1541,9 @@ function renderExList(){
   }));
 }
 document.getElementById('ex-search').addEventListener('input',renderExList);
-document.getElementById('btn-add-custom-ex').addEventListener('click',()=>openCustomExModal(false));
+document.getElementById('btn-add-custom-ex').addEventListener('click',()=>openCustomExModal('library'));
 
-function openCustomExModal(fromWorkout){
+function openCustomExModal(context){
   const sel=document.getElementById('custom-ex-cat');
   sel.innerHTML=CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
   document.getElementById('custom-ex-name').value='';
@@ -1554,9 +1557,15 @@ function openCustomExModal(fromWorkout){
     const ex={id:'c'+uid(),name,cat,muscles,custom:true};
     const exs=getExercises();exs.push(ex);saveExercises(exs);
     document.getElementById('modal-custom-ex').classList.add('hidden');
-    if(fromWorkout&&currentWorkout){
+    if(context==='workout'&&currentWorkout){
       currentWorkout.exercises.push(mkEx(ex));renderWorkout();
       document.getElementById('modal-add-ex').classList.add('hidden');
+    }else if(context==='routine'){
+      // auto-select the new exercise into the routine being built
+      if(!routineSelectedIds.includes(ex.id))routineSelectedIds.push(ex.id);
+      routineCat='全部';
+      renderRoutineCatTabs();renderRoutineExList();renderRoutineSelected();
+      toast('已新增並選入：'+name);
     }else{renderExList();}
   };
 }
@@ -2158,6 +2167,7 @@ function renderRoutineSelected(){
     return ex?`<span style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:6px;font-size:12px">${ex.name}</span>`:'';
   }).join('');
 }
+document.getElementById('routine-add-custom').addEventListener('click',()=>openCustomExModal('routine'));
 document.getElementById('routine-cancel').addEventListener('click',()=>document.getElementById('modal-routine').classList.add('hidden'));
 document.getElementById('modal-routine').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 document.getElementById('routine-save').addEventListener('click',()=>{
