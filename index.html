@@ -2246,12 +2246,35 @@ function generateShareImage(wo){
 }
 
 // ===================== INIT =====================
+// Recover data saved by an earlier build that used short localStorage keys
+// (wk/rt/ex). Non-destructive: only fills a new key when it's still empty.
+function migrateLegacyData(){
+  const isEmpty=v=>!v||v==='[]'||v==='null';
+  let did=false;
+  const wk=localStorage.getItem('wk');
+  if(wk&&isEmpty(localStorage.getItem('workouts'))){
+    try{if(JSON.parse(wk).length){localStorage.setItem('workouts',wk);did=true;}}catch(e){}
+  }
+  const rt=localStorage.getItem('rt');
+  if(rt&&isEmpty(localStorage.getItem('routines'))){
+    try{if(JSON.parse(rt).length){localStorage.setItem('routines',rt);did=true;}}catch(e){}
+  }
+  // Bring the old exercise library over too when we restored old records, so
+  // their exerciseId references stay consistent with the migrated data.
+  const ex=localStorage.getItem('ex');
+  if(did&&ex){
+    try{if(JSON.parse(ex).length)localStorage.setItem('exercises',ex);}catch(e){}
+  }
+  return did;
+}
 function init(){
+  const recovered=migrateLegacyData();
   initTheme();
   initPWA();
   getExercises(); // ensure defaults loaded
   renderHome();
   resumeActiveWorkout();
+  if(recovered)setTimeout(()=>toast('已還原你舊版的訓練紀錄'),300);
 }
 function resumeActiveWorkout(){
   let saved=null;
