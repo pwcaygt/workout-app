@@ -794,14 +794,17 @@ document.addEventListener('focusin',e=>{
   }
 });
 // Styled confirm bottom-sheet (replaces blocking confirm() for in-app actions)
-function confirmSheet(msg,onConfirm){
+function confirmSheet(msg,onConfirm,onCancel,okLabel){
   const sheet=document.getElementById('confirm-sheet');
   document.getElementById('confirm-msg').textContent=msg;
+  const okBtn=document.getElementById('confirm-ok');
+  okBtn.textContent=okLabel||'確定';
+  okBtn.className=okLabel?'btn btn-primary':'btn btn-red';
   sheet.classList.remove('hidden');
   const close=()=>sheet.classList.add('hidden');
-  document.getElementById('confirm-ok').onclick=()=>{close();if(onConfirm)onConfirm();};
-  document.getElementById('confirm-cancel').onclick=close;
-  sheet.onclick=e=>{if(e.target===sheet)close();};
+  okBtn.onclick=()=>{close();if(onConfirm)onConfirm();};
+  document.getElementById('confirm-cancel').onclick=()=>{close();if(onCancel)onCancel();};
+  sheet.onclick=e=>{if(e.target===sheet){close();if(onCancel)onCancel();}};
 }
 
 // ===================== THEME =====================
@@ -1274,9 +1277,9 @@ function toggleSetDone(ei,si){
     haptic(15);
     if(!set.isWarmup){
       const ex=currentWorkout.exercises[ei];
-      const isSuper=!!ex.supersetGroup;
       const rest=getRestFor(ex.exerciseId);
-      if(!isSuper&&rest>0)startRestTimer(rest);
+      // Superset: A→B back-to-back with no rest; rest starts after B completes the pair
+      if(rest>0&&ex.supersetGroup!=='A')startRestTimer(rest);
     }
   }
   persistActive();
@@ -1428,6 +1431,8 @@ function finishWorkout(){
   workouts.push(currentWorkout);
   saveWorkouts(workouts);
   clearInterval(timerInterval);
+  stopRestTimer();
+  clearActive(); // remove saved session + hide the finish bar
   showFinishSummary(currentWorkout);
 }
 function showFinishSummary(wo){
@@ -1456,12 +1461,13 @@ document.getElementById('finish-share').addEventListener('click',()=>{
 });
 
 document.getElementById('btn-cancel-workout').addEventListener('click',()=>{
-  if(confirm('確定取消訓練？')){
+  confirmSheet('確定取消訓練？紀錄不會儲存',()=>{
     clearInterval(timerInterval);
     stopRestTimer();
     currentWorkout=null;
+    clearActive(); // remove saved session + hide the finish bar
     showPage('home');
-  }
+  });
 });
 document.getElementById('workout-name-input').addEventListener('input',function(){
   if(currentWorkout)currentWorkout.routineName=this.value;
@@ -2498,12 +2504,11 @@ function resumeActiveWorkout(){
   let saved=null;
   try{saved=JSON.parse(localStorage.getItem('activeWorkout'));}catch(e){}
   if(!saved||!saved.exercises)return;
-  if(confirm('發現一個未完成的訓練，要繼續嗎？')){
-    currentWorkout=saved;
-    beginSession();
-  }else{
-    clearActive();
-  }
+  // Non-blocking sheet: a native confirm() here would freeze the page on launch
+  confirmSheet('發現一個未完成的訓練，要繼續嗎？',
+    ()=>{currentWorkout=saved;beginSession();},
+    ()=>clearActive(),
+    '繼續訓練');
 }
 window.addEventListener('beforeunload',function(e){
   if(currentWorkout){e.preventDefault();e.returnValue='';}
