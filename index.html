@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="健身紀錄">
-<title>健身紀錄</title>
+<meta name="apple-mobile-web-app-title" content="Strong">
+<title>Strong</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -767,7 +767,7 @@ function notify(title,body){
   }catch(e){}
 }
 // Tab-title rest countdown (visible on the browser tab when you switch apps)
-const _baseTitle='健身紀錄';
+const _baseTitle='Strong';
 function setTitleCountdown(sec){
   const m=Math.floor(sec/60),s=sec%60;
   document.title=`⏱ ${m}:${String(s).padStart(2,'0')} 休息中`;
@@ -832,9 +832,13 @@ function initPWA(){
   const r=32;cx.beginPath();cx.moveTo(r,0);cx.lineTo(192-r,0);cx.quadraticCurveTo(192,0,192,r);
   cx.lineTo(192,192-r);cx.quadraticCurveTo(192,192,192-r,192);cx.lineTo(r,192);
   cx.quadraticCurveTo(0,192,0,192-r);cx.lineTo(0,r);cx.quadraticCurveTo(0,0,r,0);cx.closePath();cx.fill();
-  cx.fillStyle='#fff';cx.font='bold 120px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💪',96,100);
+  // White line dumbbell — same path as the center nav button (24x24 → scaled to fill)
+  cx.strokeStyle='#fff';cx.lineCap='round';cx.lineJoin='round';
+  cx.save();cx.translate(18,18);cx.scale(6.5,6.5);cx.lineWidth=2.4;
+  cx.stroke(new Path2D('M6.5 8.5v7M4 10v3M9 7.5v9M15 7.5v9M17.5 8.5v7M20 10v3M9 12h6'));
+  cx.restore();
   const iconUrl=ic.toDataURL();
-  const manifest={name:'健身紀錄',short_name:'健身',start_url:'./',display:'standalone',background_color:'#f2f2f7',theme_color:'#007aff',icons:[{src:iconUrl,sizes:'192x192',type:'image/png'}]};
+  const manifest={name:'Strong',short_name:'Strong',start_url:'./',display:'standalone',background_color:'#f2f2f7',theme_color:'#007aff',icons:[{src:iconUrl,sizes:'192x192',type:'image/png'}]};
   const mblob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
   const murl=URL.createObjectURL(mblob);
   const link=document.createElement('link');link.rel='manifest';link.href=murl;document.head.appendChild(link);
@@ -939,14 +943,20 @@ function renderDayWorkouts(date){
   html+=`<div class="day-workouts">`;
   if(workouts.length===0){html+=`<div style="color:var(--text2);font-size:14px;padding:8px 0">當天無訓練記錄</div>`;}
   else{workouts.forEach(w=>{
-    html+=`<div class="day-wo-item">
-      <div style="font-weight:700">${w.routineName||'自由訓練'}</div>
+    html+=`<div class="day-wo-item" data-daywid="${w.id}" style="cursor:pointer" role="button" aria-label="查看與編輯此紀錄">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-weight:700">${w.routineName||'自由訓練'}</div>
+        <span style="color:var(--text2);font-size:16px">›</span>
+      </div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px">${w.exercises.map(e=>e.name).join('・')} · ${fmtDur(w.duration)}</div>
     </div>`;
   });}
   html+=`<button class="btn btn-primary" style="width:100%;margin-top:4px" id="btn-add-on-day">在這天新增訓練</button>`;
   html+=`</div>`;
   sec.innerHTML=html;
+  sec.querySelectorAll('[data-daywid]').forEach(item=>
+    item.addEventListener('click',()=>openHistoryDetail(item.dataset.daywid))
+  );
   document.getElementById('btn-add-on-day').addEventListener('click',()=>startWorkout(null,date));
 }
 document.getElementById('cal-prev').addEventListener('click',()=>{
@@ -1633,6 +1643,7 @@ function saveHistoryEdit(wid){
   saveWorkouts(workouts);
   toast('已更新紀錄');
   renderHistory();renderCalendar();
+  if(selectedDate)renderDayWorkouts(selectedDate);
   openHistoryDetail(wid);
 }
 document.getElementById('btn-edit-workout').addEventListener('click',()=>{if(selectedHistoryId)editHistory(selectedHistoryId);});
@@ -1640,12 +1651,13 @@ document.getElementById('modal-history-close').addEventListener('click',()=>docu
 document.getElementById('modal-history-detail').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 document.getElementById('btn-delete-workout').addEventListener('click',()=>{
   if(!selectedHistoryId)return;
-  if(confirm('確定刪除此訓練記錄？')){
+  confirmSheet('確定刪除此訓練記錄？',()=>{
     const workouts=getWorkouts().filter(w=>w.id!==selectedHistoryId);
     saveWorkouts(workouts);
     document.getElementById('modal-history-detail').classList.add('hidden');
-    renderHistory();
-  }
+    renderHistory();renderCalendar();
+    if(selectedDate)renderDayWorkouts(selectedDate);
+  });
 });
 
 // ===================== EXERCISES PAGE =====================
