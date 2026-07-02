@@ -194,7 +194,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .rest-btns{display:flex;gap:10px;justify-content:center}
 .rest-btns .btn{flex:1;min-height:44px;font-size:15px}
 /* WORKOUT HEADER */
-#workout-header{background:var(--card);padding:12px 16px;border-bottom:1px solid var(--sep);position:sticky;top:0;z-index:50}
+#workout-header{background:var(--card);padding:12px 16px;padding-top:calc(env(safe-area-inset-top) + 12px);border-bottom:1px solid var(--sep);position:sticky;top:0;z-index:50}
 #workout-name-input{font-size:18px;font-weight:700;border:none;background:none;color:var(--text);width:100%;outline:none}
 .workout-meta{display:flex;align-items:center;gap:8px;margin-top:4px}
 #elapsed-timer{font-size:14px;color:var(--text2);font-weight:600}
@@ -275,7 +275,6 @@ body{display:flex;flex-direction:column;overflow:hidden}
     <!-- Day workouts -->
     <div id="day-workout-section" class="hidden"></div>
     <!-- Suggested -->
-    <div id="suggested-section"></div>
     <!-- Quick start -->
     <div class="section-header">
       <div class="section-title">訓練計畫</div>
@@ -283,7 +282,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
     </div>
     <div id="routine-list" style="padding:0 16px 8px"></div>
     <div style="padding:8px 16px 16px">
-      <button class="btn btn-primary" style="width:100%;padding:14px" id="btn-quick-start">⚡ 快速開始空白訓練</button>
+      <button class="btn btn-primary" style="width:100%;padding:14px" id="btn-quick-start"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/></svg> 快速開始空白訓練</button>
     </div>
   </div>
 
@@ -356,27 +355,6 @@ body{display:flex;flex-direction:column;overflow:hidden}
   <!-- PROFILE PAGE -->
   <div class="page" id="page-profile">
     <div class="page-header"><div class="page-title">個人</div></div>
-    <!-- Personal info -->
-    <div class="card">
-      <div class="card-title">個人資料</div>
-      <div class="form-group">
-        <div class="form-label">身高 (cm)</div>
-        <input class="form-input" id="p-height" type="number" placeholder="170">
-      </div>
-      <div class="form-group">
-        <div class="form-label">出生年</div>
-        <input class="form-input" id="p-birth" type="number" placeholder="1990">
-      </div>
-      <div class="form-group">
-        <div class="form-label">性別</div>
-        <select class="form-input form-select" id="p-gender">
-          <option value="">請選擇</option>
-          <option value="male">男</option>
-          <option value="female">女</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" style="width:100%" id="btn-save-profile">儲存</button>
-    </div>
     <!-- Measurements -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -420,17 +398,17 @@ body{display:flex;flex-direction:column;overflow:hidden}
     <div class="card" style="margin-bottom:24px">
       <div class="card-title">資料管理</div>
       <div style="margin-bottom:16px">
-        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-bottom:6px" id="btn-export">📤 匯出備份</button>
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-bottom:6px" id="btn-export"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg> 匯出備份</button>
         <div style="font-size:12px;color:var(--text2);text-align:center">下載包含所有訓練、課表、個人資料的 JSON 檔案</div>
       </div>
       <div style="margin-bottom:16px">
         <label class="btn btn-secondary" style="cursor:pointer;width:100%;padding:14px;font-size:15px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px">
-          📥 匯入備份<input type="file" accept=".json" id="import-file" style="display:none">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M4 20h16"/></svg> 匯入備份<input type="file" accept=".json" id="import-file" style="display:none">
         </label>
         <div style="font-size:12px;color:var(--text2);text-align:center">選擇先前匯出的 JSON 檔案還原資料</div>
       </div>
       <div style="border-top:1px solid var(--sep);padding-top:12px">
-        <button class="btn btn-secondary" style="width:100%" id="btn-share-last">🖼 分享最近訓練摘要</button>
+        <button class="btn btn-secondary" style="width:100%" id="btn-share-last"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-4 3 2 4-3 4 3"/></svg> 分享最近訓練摘要</button>
       </div>
     </div>
   </div>
@@ -482,6 +460,20 @@ body{display:flex;flex-direction:column;overflow:hidden}
   </div>
 </div>
 
+<!-- MODAL: Per-exercise rest time -->
+<div class="modal-backdrop hidden" id="modal-rest-setting">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="rest-setting-title">組間休息</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="rest-preset-row"></div>
+    <input class="form-input" type="number" inputmode="numeric" id="rest-setting-input" placeholder="自訂秒數">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" style="flex:1" id="rest-setting-default">用全域預設</button>
+      <button class="btn btn-primary" style="flex:1" id="rest-setting-save">儲存</button>
+    </div>
+  </div>
+</div>
+
 <!-- REST TIMER OVERLAY -->
 <div id="rest-overlay" class="hidden">
   <div class="rest-card">
@@ -525,8 +517,9 @@ body{display:flex;flex-direction:column;overflow:hidden}
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div id="history-detail-content"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
+    <div id="history-detail-footer" style="display:flex;gap:8px;margin-top:12px">
       <button class="btn btn-secondary" style="flex:1" id="modal-history-close">關閉</button>
+      <button class="btn btn-secondary" style="flex:1" id="btn-edit-workout">編輯</button>
       <button class="btn btn-red" style="flex:1" id="btn-delete-workout">刪除</button>
     </div>
   </div>
@@ -546,6 +539,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
         <div class="form-label" style="margin:0">選擇動作</div>
         <button class="btn btn-sm btn-secondary" id="routine-add-custom" style="font-size:13px;padding:5px 12px">＋ 自訂動作</button>
       </div>
+      <input class="search-input" id="routine-ex-search" placeholder="搜尋動作..." style="margin-bottom:8px">
       <div class="cat-tabs" id="routine-cat-tabs" style="padding:0 0 8px"></div>
       <div id="routine-ex-list" style="max-height:40vh;overflow-y:auto;border:1px solid var(--sep);border-radius:10px;padding:4px"></div>
     </div>
@@ -641,7 +635,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
     <div class="modal-title">訓練完成 🎉</div>
     <div id="finish-summary" style="margin-bottom:16px"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary" style="flex:1" id="finish-share">🖼 分享</button>
+      <button class="btn btn-secondary" style="flex:1" id="finish-share"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-4 3 2 4-3 4 3"/></svg> 分享</button>
       <button class="btn btn-primary" style="flex:1" id="finish-done">完成</button>
     </div>
   </div>
@@ -688,7 +682,7 @@ function ls(k){try{return JSON.parse(localStorage.getItem(k))}catch{return null}
 function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
 function getSettings(){
-  const def={unit:'kg',theme:'light',restTime:90,trackedExercises:['e7','e1','e8'],weekPlan:{},statCards:['totalWorkouts','sbdTotal','monthVolume']};
+  const def={unit:'kg',theme:'light',restTime:90,trackedExercises:['e7','e1','e8'],statCards:['totalWorkouts','sbdTotal','monthVolume']};
   const s=ls('settings');
   if(!s)return def;
   if(!s.statCards)s.statCards=def.statCards;
@@ -779,6 +773,26 @@ function setTitleCountdown(sec){
   document.title=`⏱ ${m}:${String(s).padStart(2,'0')} 休息中`;
 }
 function restoreTitle(){document.title=_baseTitle;}
+// Inline SVG line icons (consistent with the bottom-nav style)
+function svgIcon(name,size){
+  size=size||16;
+  const paths={
+    trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    chart:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+    download:'<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',
+    upload:'<path d="M12 15V3M7 8l5-5 5 5M4 20h16"/>',
+    bolt:'<path d="M13 2L5 13h5l-1 9 8-11h-5l1-9z"/>',
+    clipboard:'<path d="M9 4h6v3H9zM7 4H5v17h14V4h-2M9 11h6M9 15h4"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>'
+  };
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true">${paths[name]||''}</svg>`;
+}
+// Keep the focused input visible above the iOS keyboard
+document.addEventListener('focusin',e=>{
+  if(e.target.matches('input[type="number"],input[type="text"],input[type="date"],textarea')){
+    setTimeout(()=>{try{e.target.scrollIntoView({block:'center',behavior:'smooth'});}catch(err){}},300);
+  }
+});
 // Styled confirm bottom-sheet (replaces blocking confirm() for in-app actions)
 function confirmSheet(msg,onConfirm){
   const sheet=document.getElementById('confirm-sheet');
@@ -943,7 +957,6 @@ document.getElementById('cal-next').addEventListener('click',()=>{
 function renderHome(){
   renderStats_Home();
   renderCalendar();
-  renderSuggested();
   renderRoutineList();
   document.getElementById('day-workout-section').classList.add('hidden');
   selectedDate=null;
@@ -962,27 +975,6 @@ function renderStats_Home(){
     <div class="stat-card"><div class="stat-val">${week}</div><div class="stat-label">本週訓練</div></div>
     <div class="stat-card"><div class="stat-val">${month}</div><div class="stat-label">本月訓練</div></div>
     <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">總訓練數</div></div>`;
-}
-function renderSuggested(){
-  const s=getSettings();
-  const todayDay=new Date().getDay();
-  const dayNames=['sun','mon','tue','wed','thu','fri','sat'];
-  const d=s.weekPlan&&s.weekPlan[dayNames[todayDay]];
-  const sec=document.getElementById('suggested-section');
-  if(d){
-    const routines=getRoutines();
-    const r=routines.find(r=>r.id===d);
-    if(r){
-      sec.innerHTML=`<div class="section-header"><div class="section-title">今日建議</div></div>
-      <div style="margin:0 16px 8px"><div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
-        <div><div style="font-weight:700">${r.name}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${r.exerciseIds.length}個動作</div></div>
-        <button class="btn btn-primary btn-sm" data-rid="${r.id}">開始</button>
-      </div></div>`;
-      sec.querySelector('[data-rid]').addEventListener('click',()=>startWorkout(r.id));
-      return;
-    }
-  }
-  sec.innerHTML='';
 }
 function renderRoutineList(){
   const routines=getRoutines();
@@ -1055,6 +1047,7 @@ let timerPaused=0;
 let restInterval=null;
 let restRemaining=0;
 let restTotal=0;
+let restEndTs=0;
 
 function startWorkout(routineId,forDate){
   const exs=getExercises();
@@ -1142,7 +1135,7 @@ function renderWorkout(){
         <span class="ex-name">${ex.name}</span>
         ${superBadge}
         <button class="btn btn-sm" style="background:${ex.supersetGroup?'var(--purple)':'var(--input-bg)'};color:${ex.supersetGroup?'#fff':'var(--text2)'};font-size:11px" data-super="${ei}" aria-label="超級組">超組</button>
-        <button class="btn btn-sm" data-remove="${ei}" style="font-size:16px;padding:5px 10px;background:rgba(255,59,48,0.12);color:var(--red);border-radius:8px;font-weight:600" aria-label="刪除此動作">🗑</button>
+        <button class="btn btn-sm" data-remove="${ei}" style="padding:5px 10px;background:rgba(255,59,48,0.12);color:var(--red);border-radius:8px" aria-label="刪除此動作">${svgIcon('trash',16)}</button>
       </div>
       <table class="set-table">
         <thead><tr>
@@ -1150,6 +1143,7 @@ function renderWorkout(){
           <th>${s.unit}</th>
           <th>次</th>
           <th style="width:56px">✓</th>
+          <th style="width:30px"></th>
         </tr></thead>
         <tbody id="sets-${ei}"></tbody>
       </table>
@@ -1158,6 +1152,7 @@ function renderWorkout(){
         <button class="btn btn-sm" style="background:rgba(255,159,10,0.15);color:var(--orange)" data-add-warmup="${ei}">+暖身組</button>
         <button class="btn btn-sm btn-secondary" data-add-set="${ei}">+正式組</button>
         ${hasPrev?`<button class="btn btn-sm btn-secondary" data-reuse="${ei}">沿用上次</button>`:''}
+        <button class="btn btn-sm btn-secondary" data-rest="${ei}" aria-label="設定此動作的組間休息">${svgIcon('clock',13)} ${(function(){const r=getRestFor(ex.exerciseId);return r>0?r+'s':'無';})()}</button>
         <label style="display:flex;align-items:center;gap:4px;font-size:12px">
           <input type="checkbox" data-bw="${ei}" ${ex.sets[0]&&ex.sets[0].isBodyweight?'checked':''}> 體重
         </label>
@@ -1200,6 +1195,7 @@ function renderWorkout(){
       currentWorkout.exercises[ei].sets.forEach(s=>s.isBodyweight=this.checked);
       renderWorkout();
     });
+    block.querySelector(`[data-rest="${ei}"]`).addEventListener('click',()=>openRestSetting(ex.exerciseId,ex.name));
     setupDragHandle(block.querySelector(`[data-drag="${ei}"]`),ei);
   });
   persistActive();
@@ -1242,7 +1238,8 @@ function renderSets(ei){
       <td>${numCell}</td>
       <td><input class="set-input" type="number" step="0.5" value="${set.isBodyweight?'':displayW(set.weight||0,s.unit)}" ${set.isBodyweight?'disabled placeholder="體重"':''} data-si="${si}" data-field="weight" style="width:70px">${hint}</td>
       <td><input class="set-input" type="number" value="${set.reps||0}" data-si="${si}" data-field="reps" style="width:56px"></td>
-      <td><button class="done-btn${set.done?' checked':''}" data-done="${si}" role="checkbox" aria-pressed="${set.done?'true':'false'}" aria-label="${set.done?'取消完成此組':'標記此組完成'}">✓</button></td>`;
+      <td><button class="done-btn${set.done?' checked':''}" data-done="${si}" role="checkbox" aria-pressed="${set.done?'true':'false'}" aria-label="${set.done?'取消完成此組':'標記此組完成'}">✓</button></td>
+      <td><button data-delset="${si}" style="border:none;background:none;color:var(--text2);font-size:17px;cursor:pointer;padding:4px 6px" aria-label="刪除此組">×</button></td>`;
     tbody.appendChild(row);
     row.querySelectorAll('input[data-field]').forEach(inp=>{
       inp.addEventListener('change',function(){
@@ -1254,12 +1251,23 @@ function renderSets(ei){
       });
     });
     row.querySelector(`[data-done="${si}"]`).addEventListener('click',()=>toggleSetDone(ei,si));
+    row.querySelector(`[data-delset="${si}"]`).addEventListener('click',()=>{
+      currentWorkout.exercises[ei].sets.splice(si,1);
+      haptic(10);
+      persistActive();
+      renderWorkout();
+    });
   });
   updateORMDisplay(ei);
 }
 
+// Effective rest seconds for an exercise: its own setting, else the global default
+function getRestFor(exerciseId){
+  const ex=getExercises().find(e=>e.id===exerciseId);
+  if(ex&&ex.restTime!=null)return ex.restTime;
+  return getSettings().restTime;
+}
 function toggleSetDone(ei,si){
-  const s=getSettings();
   const set=currentWorkout.exercises[ei].sets[si];
   set.done=!set.done;
   if(set.done){
@@ -1267,7 +1275,8 @@ function toggleSetDone(ei,si){
     if(!set.isWarmup){
       const ex=currentWorkout.exercises[ei];
       const isSuper=!!ex.supersetGroup;
-      if(!isSuper&&s.restTime>0)startRestTimer(s.restTime);
+      const rest=getRestFor(ex.exerciseId);
+      if(!isSuper&&rest>0)startRestTimer(rest);
     }
   }
   persistActive();
@@ -1333,28 +1342,65 @@ function setupDragHandle(handle,startEi){
 // ===================== REST TIMER =====================
 function startRestTimer(secs){
   stopRestTimer();
-  restRemaining=secs;restTotal=secs;
+  restTotal=secs;restEndTs=Date.now()+secs*1000;restRemaining=secs;
   document.getElementById('rest-overlay').classList.remove('hidden');
   updateRestDisplay();
   setTitleCountdown(restRemaining);
-  restInterval=setInterval(()=>{
-    restRemaining--;
-    if(restRemaining<=0){
-      haptic([200,100,200]);beep();
-      notify('休息結束！','開始下一組 💪');
-      restoreTitle();
-      stopRestTimer();
-      return;
-    }
-    updateRestDisplay();
-    setTitleCountdown(restRemaining);
-  },1000);
+  // Tick off wall-clock time so backgrounding the app (which throttles timers)
+  // never desyncs the countdown — remaining is always recomputed from restEndTs.
+  restInterval=setInterval(restTick,500);
+}
+function restTick(){
+  if(!restEndTs)return;
+  restRemaining=Math.max(0,Math.round((restEndTs-Date.now())/1000));
+  if(restRemaining<=0){
+    haptic([200,100,200]);beep();
+    notify('休息結束！','開始下一組 💪');
+    stopRestTimer();
+    return;
+  }
+  updateRestDisplay();
+  setTitleCountdown(restRemaining);
 }
 function stopRestTimer(){
   clearInterval(restInterval);
+  restEndTs=0;
   restoreTitle();
   document.getElementById('rest-overlay').classList.add('hidden');
 }
+// When the app returns to the foreground, immediately resync the countdown
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&restEndTs)restTick();});
+
+// ---- Per-exercise rest-time setting ----
+let restSettingExId=null;
+function openRestSetting(exerciseId,exName){
+  restSettingExId=exerciseId;
+  const ex=getExercises().find(e=>e.id===exerciseId);
+  document.getElementById('rest-setting-title').textContent=`「${exName}」組間休息`;
+  document.getElementById('rest-setting-input').value=(ex&&ex.restTime!=null)?ex.restTime:'';
+  const row=document.getElementById('rest-preset-row');
+  row.innerHTML=[60,90,120,180,240].map(v=>`<button class="btn btn-sm btn-secondary" data-rp="${v}">${v}s</button>`).join('')
+    +`<button class="btn btn-sm btn-secondary" data-rp="0">無休息</button>`;
+  row.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=>saveRestSetting(parseInt(b.dataset.rp))));
+  document.getElementById('modal-rest-setting').classList.remove('hidden');
+}
+function saveRestSetting(val){
+  const exs=getExercises();
+  const ex=exs.find(e=>e.id===restSettingExId);
+  if(ex){
+    if(val==null)delete ex.restTime; else ex.restTime=val;
+    saveExercises(exs);
+  }
+  document.getElementById('modal-rest-setting').classList.add('hidden');
+  toast(val==null?'已改用全域預設':(val>0?`此動作休息 ${val} 秒`:'此動作無組間休息'));
+  if(currentWorkout)renderWorkout();
+}
+document.getElementById('rest-setting-save').addEventListener('click',()=>{
+  const v=parseInt(document.getElementById('rest-setting-input').value);
+  saveRestSetting(isNaN(v)?null:Math.max(0,v));
+});
+document.getElementById('rest-setting-default').addEventListener('click',()=>saveRestSetting(null));
+document.getElementById('modal-rest-setting').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 function updateRestDisplay(){
   const m=Math.floor(restRemaining/60),s=restRemaining%60;
   document.getElementById('rest-display').textContent=`${m}:${String(s).padStart(2,'0')}`;
@@ -1362,8 +1408,8 @@ function updateRestDisplay(){
   const pct=restRemaining/restTotal;
   arc.style.strokeDashoffset=326.7*(1-pct);
 }
-document.getElementById('rest-minus').addEventListener('click',()=>{restRemaining=Math.max(0,restRemaining-15);updateRestDisplay();});
-document.getElementById('rest-plus').addEventListener('click',()=>{restRemaining+=30;restTotal=Math.max(restTotal,restRemaining);updateRestDisplay();});
+document.getElementById('rest-minus').addEventListener('click',()=>{restEndTs-=15000;restRemaining=Math.max(0,Math.round((restEndTs-Date.now())/1000));updateRestDisplay();setTitleCountdown(restRemaining);});
+document.getElementById('rest-plus').addEventListener('click',()=>{restEndTs+=30000;restRemaining=Math.round((restEndTs-Date.now())/1000);restTotal=Math.max(restTotal,restRemaining);updateRestDisplay();setTitleCountdown(restRemaining);});
 document.getElementById('rest-skip').addEventListener('click',stopRestTimer);
 
 // ===================== FINISH WORKOUT =====================
@@ -1477,22 +1523,34 @@ document.getElementById('btn-quick-create-ex').addEventListener('click',()=>{
 // ===================== HISTORY =====================
 let selectedHistoryId=null;
 function renderHistory(){
-  const workouts=getWorkouts().slice().reverse();
+  const workouts=getWorkouts().slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const el=document.getElementById('history-list');
   if(workouts.length===0){
-    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div>尚無訓練記錄</div></div>`;
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon" style="color:var(--text2)">${svgIcon('clipboard',44)}</div><div>尚無訓練記錄</div></div>`;
     return;
   }
   const s=getSettings();
-  el.innerHTML=workouts.map(w=>{
-    const doneSets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>!s.isWarmup&&s.done).length,0);
-    const exTags=w.exercises.slice(0,4).map(e=>`<span class="tag">${e.name}</span>`).join('');
-    return`<div class="history-card" data-wid="${w.id}">
-      <div class="history-date">${fmtDate(w.date)}</div>
-      <div class="history-name">${w.routineName||'自由訓練'}</div>
-      <div class="history-tags">${exTags}${w.exercises.length>4?`<span class="tag">+${w.exercises.length-4}</span>`:''}</div>
-      <div class="history-meta"><span>⏱ ${fmtDur(w.duration)}</span><span>💪 ${doneSets}組</span></div>
-    </div>`;
+  // Group by month (YYYY-MM), newest first
+  const groups={};
+  workouts.forEach(w=>{const k=(w.date||'').slice(0,7)||'未知';(groups[k]=groups[k]||[]).push(w);});
+  el.innerHTML=Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(mk=>{
+    const [y,m]=mk.split('-');
+    const list=groups[mk];
+    const cards=list.map(w=>{
+      const doneSets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>!s.isWarmup&&s.done).length,0);
+      const vol=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>!s.isWarmup&&s.done).reduce((v,st)=>v+(st.weight||0)*(st.reps||0),0),0);
+      const exTags=w.exercises.slice(0,4).map(e=>`<span class="tag">${e.name}</span>`).join('');
+      return`<div class="history-card" data-wid="${w.id}">
+        <div class="history-date">${fmtDate(w.date)}</div>
+        <div class="history-name">${w.routineName||'自由訓練'}</div>
+        <div class="history-tags">${exTags}${w.exercises.length>4?`<span class="tag">+${w.exercises.length-4}</span>`:''}</div>
+        <div class="history-meta"><span>${fmtDur(w.duration)}</span><span>${doneSets}組</span><span>總量 ${Math.round(displayW(vol,s.unit)).toLocaleString()}${s.unit}</span></div>
+      </div>`;
+    }).join('');
+    return`<div style="padding:14px 16px 6px;display:flex;align-items:baseline;gap:8px">
+      <span style="font-size:15px;font-weight:700">${y}年${parseInt(m)}月</span>
+      <span style="font-size:12px;color:var(--text2)">${list.length} 次訓練</span>
+    </div>${cards}`;
   }).join('');
   el.querySelectorAll('.history-card').forEach(card=>{
     card.addEventListener('click',()=>openHistoryDetail(card.dataset.wid));
@@ -1519,8 +1577,59 @@ function openHistoryDetail(wid){
   });
   if(w.notes)html+=`<div style="background:var(--input-bg);border-radius:8px;padding:10px;font-size:13px;color:var(--text2)">${w.notes}</div>`;
   document.getElementById('history-detail-content').innerHTML=html;
+  document.getElementById('history-detail-footer').style.display='flex';
   document.getElementById('modal-history-detail').classList.remove('hidden');
 }
+// ---- Edit a past workout (date + set values) ----
+function editHistory(wid){
+  const w=getWorkouts().find(w=>w.id===wid);
+  if(!w)return;
+  const s=getSettings();
+  let html=`<div style="font-size:20px;font-weight:700;margin-bottom:12px">編輯訓練紀錄</div>
+    <div class="form-label" style="margin-bottom:4px">日期</div>
+    <input class="form-input" type="date" id="edit-hist-date" value="${(w.date||'').slice(0,10)}" style="margin-bottom:14px">`;
+  w.exercises.forEach((ex,ei)=>{
+    html+=`<div style="margin-bottom:12px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">${ex.name}</div>`;
+    ex.sets.forEach((set,si)=>{
+      const badge=set.isWarmup?'<span class="w-badge" style="font-size:9px">W</span>':`${si+1}`;
+      html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="width:20px;text-align:center;color:var(--text2);font-size:13px">${badge}</span>
+        <input class="form-input" type="number" step="0.5" inputmode="decimal" value="${displayW(set.weight||0,s.unit)}" data-eh-ei="${ei}" data-eh-si="${si}" data-eh-f="weight" style="flex:1;padding:8px" aria-label="重量">
+        <span style="color:var(--text2);font-size:13px">${s.unit}</span>
+        <input class="form-input" type="number" inputmode="numeric" value="${set.reps||0}" data-eh-ei="${ei}" data-eh-si="${si}" data-eh-f="reps" style="flex:1;padding:8px" aria-label="次數">
+        <span style="color:var(--text2);font-size:13px">次</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`<div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn btn-secondary" style="flex:1" id="edit-hist-cancel">取消</button>
+    <button class="btn btn-primary" style="flex:1" id="edit-hist-save">儲存</button>
+  </div>`;
+  document.getElementById('history-detail-content').innerHTML=html;
+  document.getElementById('history-detail-footer').style.display='none';
+  document.getElementById('edit-hist-cancel').addEventListener('click',()=>openHistoryDetail(wid));
+  document.getElementById('edit-hist-save').addEventListener('click',()=>saveHistoryEdit(wid));
+}
+function saveHistoryEdit(wid){
+  const s=getSettings();
+  const workouts=getWorkouts();
+  const w=workouts.find(w=>w.id===wid);
+  if(!w)return;
+  const newDate=document.getElementById('edit-hist-date').value;
+  if(newDate)w.date=newDate;
+  document.querySelectorAll('#history-detail-content [data-eh-f]').forEach(inp=>{
+    const ei=+inp.dataset.ehEi, si=+inp.dataset.ehSi, f=inp.dataset.ehF, v=parseFloat(inp.value)||0;
+    const set=w.exercises[ei]&&w.exercises[ei].sets[si];
+    if(!set)return;
+    if(f==='weight')set.weight=toKg(v,s.unit); else set.reps=v;
+  });
+  saveWorkouts(workouts);
+  toast('已更新紀錄');
+  renderHistory();renderCalendar();
+  openHistoryDetail(wid);
+}
+document.getElementById('btn-edit-workout').addEventListener('click',()=>{if(selectedHistoryId)editHistory(selectedHistoryId);});
 document.getElementById('modal-history-close').addEventListener('click',()=>document.getElementById('modal-history-detail').classList.add('hidden'));
 document.getElementById('modal-history-detail').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 document.getElementById('btn-delete-workout').addEventListener('click',()=>{
@@ -1566,8 +1675,8 @@ function renderExList(){
         <div class="muscle-tags">${(e.muscles||[]).map(m=>`<span class="muscle-tag">${m}</span>`).join('')}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn btn-sm btn-secondary" data-prog="${e.id}">📈</button>
-        <button class="btn btn-sm btn-red" data-delex="${e.id}">🗑</button>
+        <button class="btn btn-sm btn-secondary" data-prog="${e.id}" aria-label="查看進步曲線">${svgIcon('chart',15)}</button>
+        <button class="btn btn-sm btn-red" data-delex="${e.id}" aria-label="刪除動作">${svgIcon('trash',15)}</button>
       </div>
     </div>`).join('');
   el.querySelectorAll('[data-prog]').forEach(b=>b.addEventListener('click',()=>openExProgress(b.dataset.prog)));
@@ -2009,11 +2118,7 @@ function renderMonthlyChart(){
 
 // ===================== PROFILE =====================
 function renderProfile(){
-  const p=getProfile();
   const s=getSettings();
-  document.getElementById('p-height').value=p.height||'';
-  document.getElementById('p-birth').value=p.birthYear||'';
-  document.getElementById('p-gender').value=p.gender||'';
   document.getElementById('toggle-dark').checked=s.theme==='dark';
   document.getElementById('rest-time-input').value=s.restTime>0?s.restTime:'';
   document.getElementById('no-rest-check').checked=s.restTime===0;
@@ -2023,14 +2128,6 @@ function renderProfile(){
   renderTrackedList();
   setTimeout(renderBodyCharts,100);
 }
-document.getElementById('btn-save-profile').addEventListener('click',()=>{
-  const p=getProfile();
-  p.height=parseFloat(document.getElementById('p-height').value)||null;
-  p.birthYear=parseInt(document.getElementById('p-birth').value)||null;
-  p.gender=document.getElementById('p-gender').value||null;
-  saveProfile(p);
-  alert('已儲存');
-});
 document.getElementById('toggle-dark').addEventListener('change',function(){
   applyTheme(this.checked?'dark':'light');
 });
@@ -2066,7 +2163,7 @@ function renderMeasList(){
     <div class="meas-card">
       <div class="meas-date tnum">${m.date}</div>
       <div class="meas-vals tnum">${m.weight!=null?'體重 '+displayW(m.weight,s.unit)+s.unit:''}${m.bodyFat!=null?' · 體脂 '+m.bodyFat+'%':''}${m.skeletalMuscle!=null?' · 骨骼肌 '+displayW(m.skeletalMuscle,s.unit)+s.unit:''}</div>
-      <button class="btn btn-sm btn-red" data-delm="${m.id}" aria-label="刪除紀錄">🗑</button>
+      <button class="btn btn-sm btn-red" data-delm="${m.id}" aria-label="刪除紀錄">${svgIcon('trash',15)}</button>
     </div>`).join('');
   el.querySelectorAll('[data-delm]').forEach(b=>b.addEventListener('click',()=>{
     const meas=getMeasurements().filter(m=>m.id!==b.dataset.delm);
@@ -2191,11 +2288,13 @@ function openRoutineModal(routineId){
   document.getElementById('routine-name-input').value=r?r.name:'';
   routineSelectedIds=r?[...r.exerciseIds]:[];
   routineCat='全部';
+  document.getElementById('routine-ex-search').value='';
   renderRoutineCatTabs();
   renderRoutineExList();
   renderRoutineSelected();
   document.getElementById('modal-routine').classList.remove('hidden');
 }
+document.getElementById('routine-ex-search').addEventListener('input',renderRoutineExList);
 function renderRoutineCatTabs(){
   const tabs=document.getElementById('routine-cat-tabs');
   const cats=['全部',...CATS];
@@ -2203,7 +2302,9 @@ function renderRoutineCatTabs(){
   tabs.querySelectorAll('[data-rcat]').forEach(b=>b.addEventListener('click',()=>{routineCat=b.dataset.rcat;renderRoutineCatTabs();renderRoutineExList();}));
 }
 function renderRoutineExList(){
-  const exercises=getExercises().filter(e=>routineCat==='全部'||e.cat===routineCat);
+  const q=(document.getElementById('routine-ex-search').value||'').trim().toLowerCase();
+  const exercises=getExercises().filter(e=>
+    (routineCat==='全部'||e.cat===routineCat)&&(!q||e.name.toLowerCase().includes(q)));
   document.getElementById('routine-ex-list').innerHTML=exercises.map(e=>`
     <div style="display:flex;align-items:center;padding:8px">
       <input type="checkbox" id="re-${e.id}" ${routineSelectedIds.includes(e.id)?'checked':''} style="margin-right:8px">
