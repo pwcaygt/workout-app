@@ -254,6 +254,18 @@ body{display:flex;flex-direction:column;overflow:hidden}
 </style>
 </head>
 <body>
+<!-- SPLASH: motivational quote, fades out ~2.2s after load (tap to skip) -->
+<div id="splash" style="position:fixed;inset:0;background:#007aff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;transition:opacity .5s ease;cursor:pointer">
+  <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:28px">
+    <path d="M6.5 8.5v7M4 10v3M9 7.5v9M15 7.5v9M17.5 8.5v7M20 10v3M9 12h6"/>
+  </svg>
+  <div style="color:#fff;font-size:20px;font-weight:700;line-height:1.9;letter-spacing:.5px">
+    不要高估一天所能達到的效果<br>不要低估一年所能達到的成就
+  </div>
+  <div style="color:#fff;font-size:16px;font-weight:600;margin-top:22px;letter-spacing:1px;text-shadow:0 0 14px rgba(255,255,255,.55)">
+    讓我們一起變得更健康強壯！
+  </div>
+</div>
 <div id="app">
   <!-- HOME PAGE -->
   <div class="page active" id="page-home">
@@ -338,8 +350,12 @@ body{display:flex;flex-direction:column;overflow:hidden}
     <div class="section-header"><div class="section-title">PR 追蹤</div></div>
     <div class="pr-grid" id="pr-grid"></div>
     <div class="card">
-      <div class="card-title">本週肌肉訓練量</div>
-      <div class="chart-wrap"><canvas id="chart-muscle"></canvas></div>
+      <div class="card-title">三大力量 1RM 趨勢</div>
+      <div class="chart-wrap"><canvas id="chart-sbd"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">最近 PR</div>
+      <div id="pr-feed"></div>
     </div>
     <div class="card">
       <div class="card-title">動作進步</div>
@@ -494,7 +510,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 </div>
 
 <!-- MODAL: Add Exercise to Workout -->
-<div class="modal-backdrop hidden" id="modal-add-ex">
+<div class="modal-backdrop hidden" id="modal-add-ex" style="z-index:210">
   <div class="modal-sheet" style="max-height:80vh">
     <div class="modal-handle"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -555,7 +571,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 </div>
 
 <!-- MODAL: Add Custom Exercise -->
-<div class="modal-backdrop hidden" id="modal-custom-ex">
+<div class="modal-backdrop hidden" id="modal-custom-ex" style="z-index:220">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">新增自訂動作</div>
@@ -819,7 +835,7 @@ function initTheme(){applyTheme(getSettings().theme)}
 // Re-draw whichever charts are on the currently visible page (theme/unit change)
 function rerenderVisibleCharts(){
   if(typeof Chart==='undefined')return;
-  if(currentPage==='stats'){renderMusclChart();renderProgressChart();renderMonthlyChart();}
+  if(currentPage==='stats'){renderSBDChart();renderProgressChart();renderMonthlyChart();}
   if(currentPage==='profile')renderBodyCharts();
 }
 
@@ -1493,7 +1509,12 @@ function openAddExerciseModal(){
   renderModalExList();
   document.getElementById('modal-add-ex').classList.remove('hidden');
 }
-document.getElementById('btn-add-exercise').addEventListener('click',openAddExerciseModal);
+// Optional callback: when set, picking an exercise calls it instead of adding to currentWorkout
+function openAddExercisePicker(cb){
+  addExCallback=(typeof cb==='function')?cb:null;
+  openAddExerciseModal();
+}
+document.getElementById('btn-add-exercise').addEventListener('click',()=>openAddExercisePicker(null));
 document.getElementById('modal-add-ex-close').addEventListener('click',()=>document.getElementById('modal-add-ex').classList.add('hidden'));
 document.getElementById('modal-add-ex').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 document.getElementById('modal-ex-search').addEventListener('input',renderModalExList);
@@ -1523,7 +1544,11 @@ function renderModalExList(){
   el.querySelectorAll('[data-mid]').forEach(item=>{
     item.addEventListener('click',()=>{
       const ex=exercises.find(e=>e.id===item.dataset.mid);
-      if(ex&&currentWorkout){
+      if(!ex)return;
+      if(addExCallback){
+        addExCallback(ex);
+        document.getElementById('modal-add-ex').classList.add('hidden');
+      }else if(currentWorkout){
         currentWorkout.exercises.push(mkEx(ex));
         renderWorkout();
         document.getElementById('modal-add-ex').classList.add('hidden');
@@ -1596,16 +1621,27 @@ function openHistoryDetail(wid){
   document.getElementById('history-detail-footer').style.display='flex';
   document.getElementById('modal-history-detail').classList.remove('hidden');
 }
-// ---- Edit a past workout (date + set values) ----
+// ---- Edit a past workout (date, set values, add/remove sets and exercises) ----
+// Edits happen on a draft copy; nothing is written until 儲存.
+let editDraft=null;
 function editHistory(wid){
   const w=getWorkouts().find(w=>w.id===wid);
   if(!w)return;
+  editDraft=JSON.parse(JSON.stringify(w));
+  renderEditForm(wid);
+}
+function renderEditForm(wid){
   const s=getSettings();
+  const w=editDraft;
   let html=`<div style="font-size:20px;font-weight:700;margin-bottom:12px">編輯訓練紀錄</div>
     <div class="form-label" style="margin-bottom:4px">日期</div>
     <input class="form-input" type="date" id="edit-hist-date" value="${(w.date||'').slice(0,10)}" style="margin-bottom:14px">`;
   w.exercises.forEach((ex,ei)=>{
-    html+=`<div style="margin-bottom:12px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">${ex.name}</div>`;
+    html+=`<div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-weight:700;color:var(--accent)">${ex.name}</div>
+        <button data-eh-delex="${ei}" style="border:none;background:none;color:var(--text2);font-size:16px;cursor:pointer;padding:2px 6px" aria-label="移除此動作">×</button>
+      </div>`;
     ex.sets.forEach((set,si)=>{
       const badge=set.isWarmup?'<span class="w-badge" style="font-size:9px">W</span>':`${si+1}`;
       html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -1614,33 +1650,64 @@ function editHistory(wid){
         <span style="color:var(--text2);font-size:13px">${s.unit}</span>
         <input class="form-input" type="number" inputmode="numeric" value="${set.reps||0}" data-eh-ei="${ei}" data-eh-si="${si}" data-eh-f="reps" style="flex:1;padding:8px" aria-label="次數">
         <span style="color:var(--text2);font-size:13px">次</span>
+        <button data-eh-delset="${ei}-${si}" style="border:none;background:none;color:var(--text2);font-size:16px;cursor:pointer;padding:2px 4px" aria-label="刪除此組">×</button>
       </div>`;
     });
-    html+=`</div>`;
+    html+=`<button class="btn btn-sm btn-secondary" data-eh-addset="${ei}" style="margin-top:2px">＋ 加一組</button>
+    </div>`;
   });
-  html+=`<div style="display:flex;gap:8px;margin-top:8px">
+  html+=`<button class="btn btn-secondary" style="width:100%;margin-bottom:10px" id="edit-hist-addex">＋ 新增動作</button>
+  <div style="display:flex;gap:8px;margin-top:4px">
     <button class="btn btn-secondary" style="flex:1" id="edit-hist-cancel">取消</button>
     <button class="btn btn-primary" style="flex:1" id="edit-hist-save">儲存</button>
   </div>`;
-  document.getElementById('history-detail-content').innerHTML=html;
+  const root=document.getElementById('history-detail-content');
+  root.innerHTML=html;
   document.getElementById('history-detail-footer').style.display='none';
-  document.getElementById('edit-hist-cancel').addEventListener('click',()=>openHistoryDetail(wid));
+  // bind draft edits
+  root.querySelectorAll('[data-eh-f]').forEach(inp=>{
+    inp.addEventListener('change',function(){
+      const ei=+this.dataset.ehEi, si=+this.dataset.ehSi, v=parseFloat(this.value)||0;
+      const set=w.exercises[ei]&&w.exercises[ei].sets[si];
+      if(!set)return;
+      if(this.dataset.ehF==='weight')set.weight=toKg(v,s.unit); else set.reps=v;
+    });
+  });
+  root.querySelectorAll('[data-eh-addset]').forEach(b=>b.addEventListener('click',()=>{
+    const ei=+b.dataset.ehAddset;
+    const last=w.exercises[ei].sets.slice(-1)[0];
+    w.exercises[ei].sets.push({weight:last?last.weight:0,reps:last?last.reps:5,done:true,isWarmup:false,isBodyweight:false});
+    renderEditForm(wid);
+  }));
+  root.querySelectorAll('[data-eh-delset]').forEach(b=>b.addEventListener('click',()=>{
+    const [ei,si]=b.dataset.ehDelset.split('-').map(Number);
+    w.exercises[ei].sets.splice(si,1);
+    if(w.exercises[ei].sets.length===0)w.exercises.splice(ei,1);
+    renderEditForm(wid);
+  }));
+  root.querySelectorAll('[data-eh-delex]').forEach(b=>b.addEventListener('click',()=>{
+    w.exercises.splice(+b.dataset.ehDelex,1);
+    renderEditForm(wid);
+  }));
+  document.getElementById('edit-hist-addex').addEventListener('click',()=>{
+    openAddExercisePicker(ex=>{
+      w.exercises.push({exerciseId:ex.id,name:ex.name,cat:ex.cat,supersetGroup:null,
+        sets:[{weight:0,reps:5,done:true,isWarmup:false,isBodyweight:false}]});
+      renderEditForm(wid);
+    });
+  });
+  document.getElementById('edit-hist-cancel').addEventListener('click',()=>{editDraft=null;openHistoryDetail(wid);});
   document.getElementById('edit-hist-save').addEventListener('click',()=>saveHistoryEdit(wid));
 }
 function saveHistoryEdit(wid){
-  const s=getSettings();
   const workouts=getWorkouts();
-  const w=workouts.find(w=>w.id===wid);
-  if(!w)return;
+  const idx=workouts.findIndex(w=>w.id===wid);
+  if(idx<0||!editDraft)return;
   const newDate=document.getElementById('edit-hist-date').value;
-  if(newDate)w.date=newDate;
-  document.querySelectorAll('#history-detail-content [data-eh-f]').forEach(inp=>{
-    const ei=+inp.dataset.ehEi, si=+inp.dataset.ehSi, f=inp.dataset.ehF, v=parseFloat(inp.value)||0;
-    const set=w.exercises[ei]&&w.exercises[ei].sets[si];
-    if(!set)return;
-    if(f==='weight')set.weight=toKg(v,s.unit); else set.reps=v;
-  });
+  if(newDate)editDraft.date=newDate;
+  workouts[idx]=editDraft;
   saveWorkouts(workouts);
+  editDraft=null;
   toast('已更新紀錄');
   renderHistory();renderCalendar();
   if(selectedDate)renderDayWorkouts(selectedDate);
@@ -1897,12 +1964,13 @@ function renderExProgressChart(exId,canvasId){
 }
 
 // ===================== STATS =====================
-let chartMuscle=null,chartProgress=null,chartMonthly=null;
+let chartSBD=null,chartProgress=null,chartMonthly=null;
 function renderStats(){
   renderStatsOverview();
   renderPRGrid();
+  renderPRFeed();
   setTimeout(()=>{
-    renderMusclChart();
+    renderSBDChart();
     renderProgressChart();
     renderMonthlyChart();
     populateProgressSelect();
@@ -2051,27 +2119,63 @@ function renderPRGrid(){
     </div>`;
   }).join('');
 }
-function renderMusclChart(){
-  const workouts=getWorkouts();
-  const now=new Date();
-  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
-  const weekStr=weekStart.toISOString().slice(0,10);
-  const weekWo=workouts.filter(w=>w.date>=weekStr);
-  const exercises=getExercises();
-  const muscleSets={};
-  weekWo.forEach(w=>w.exercises.forEach(ex=>{
-    const exDef=exercises.find(e=>e.id===ex.exerciseId);
-    const muscles=(exDef&&exDef.muscles)||[];
-    const sets=ex.sets.filter(s=>!s.isWarmup&&s.done).length;
-    muscles.forEach(m=>{muscleSets[m]=(muscleSets[m]||0)+sets;});
-    if(muscles.length===0){muscleSets[ex.cat]=(muscleSets[ex.cat]||0)+sets;}
-  }));
-  const labels=Object.keys(muscleSets);
-  const data=labels.map(k=>muscleSets[k]);
-  const canvas=document.getElementById('chart-muscle');
-  if(!chartReady(canvas,labels.length>0,'本週尚無完成的訓練組')){if(chartMuscle){chartMuscle.destroy();chartMuscle=null;}return;}
-  if(chartMuscle)chartMuscle.destroy();
-  chartMuscle=new Chart(canvas.getContext('2d'),barCfg(labels,data,-1));
+// SBD (squat/bench/deadlift) estimated-1RM trend — the core 5x5 progress view
+function renderSBDChart(){
+  const s=getSettings();
+  const SBD=[{id:'e7',name:'深蹲',color:'#007aff'},{id:'e1',name:'臥推',color:'#34c759'},{id:'e8',name:'硬舉',color:'#ff9f0a'}];
+  const workouts=getWorkouts().slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  // x-axis: dates where any of the three lifts appear
+  const dates=[...new Set(workouts.filter(w=>w.exercises.some(e=>SBD.some(t=>t.id===e.exerciseId))).map(w=>w.date))];
+  const datasets=SBD.map(t=>{
+    const data=dates.map(d=>{
+      let best=0;
+      workouts.filter(w=>w.date===d).forEach(w=>{
+        const ex=w.exercises.find(e=>e.exerciseId===t.id);
+        if(ex)ex.sets.filter(st=>!st.isWarmup&&st.done&&st.weight>0).forEach(st=>{
+          const o=oneRM(st.weight,st.reps);if(o>best)best=o;
+        });
+      });
+      return best>0?Math.round(displayW(best,s.unit)*10)/10:null;
+    });
+    return{label:t.name,data,borderColor:t.color,backgroundColor:'transparent',tension:.35,pointRadius:3,spanGaps:true};
+  }).filter(ds=>ds.data.some(v=>v!=null));
+  const canvas=document.getElementById('chart-sbd');
+  if(!chartReady(canvas,dates.length>0&&datasets.length>0,'完成深蹲/臥推/硬舉訓練後顯示')){if(chartSBD){chartSBD.destroy();chartSBD=null;}return;}
+  if(chartSBD)chartSBD.destroy();
+  chartSBD=new Chart(canvas.getContext('2d'),lineCfg({labels:dates.map(d=>d.slice(5)),datasets},{legend:true}));
+}
+// Recent PR feed — chronological personal-record events
+function renderPRFeed(){
+  const s=getSettings();
+  const workouts=getWorkouts().slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const runningMax={},events=[];
+  workouts.forEach(w=>{
+    w.exercises.forEach(ex=>{
+      let best=0;
+      ex.sets.filter(st=>!st.isWarmup&&st.done&&st.weight>0).forEach(st=>{if(st.weight>best)best=st.weight;});
+      if(best<=0)return;
+      const prev=runningMax[ex.exerciseId]||0;
+      if(best>prev){
+        events.push({date:w.date,name:ex.name,weight:best,gain:prev>0?best-prev:null});
+        runningMax[ex.exerciseId]=best;
+      }
+    });
+  });
+  const el=document.getElementById('pr-feed');
+  if(!events.length){
+    el.innerHTML=`<div style="color:var(--text2);font-size:14px;padding:12px 0;text-align:center">完成訓練後，破紀錄會顯示在這裡</div>`;
+    return;
+  }
+  el.innerHTML=events.slice(-8).reverse().map(ev=>{
+    const d=new Date(ev.date+'T00:00:00');
+    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--sep)">
+      <span class="pr-badge" style="flex-shrink:0">PR</span>
+      <span style="flex:1;font-size:14px;font-weight:600">${ev.name}</span>
+      <span style="font-size:14px;font-weight:700" class="tnum">${displayW(ev.weight,s.unit)}${s.unit}</span>
+      ${ev.gain!=null?`<span style="font-size:12px;color:var(--green)" class="tnum">+${displayW(ev.gain,s.unit)}</span>`:'<span style="font-size:12px;color:var(--text2)">首次</span>'}
+      <span style="font-size:12px;color:var(--text2);flex-shrink:0">${d.getMonth()+1}/${d.getDate()}</span>
+    </div>`;
+  }).join('');
 }
 function populateProgressSelect(){
   const exercises=getExercises();
@@ -2503,7 +2607,19 @@ function migrateLegacyData(){
   }
   return did;
 }
+function initSplash(){
+  const sp=document.getElementById('splash');
+  if(!sp)return;
+  const dismiss=()=>{
+    sp.style.opacity='0';
+    sp.style.pointerEvents='none';
+    setTimeout(()=>sp.remove(),550);
+  };
+  sp.addEventListener('click',dismiss);
+  setTimeout(dismiss,2200);
+}
 function init(){
+  initSplash();
   const recovered=migrateLegacyData();
   initTheme();
   initPWA();
