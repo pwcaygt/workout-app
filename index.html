@@ -502,6 +502,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
         transform="rotate(-90 60 60)"/>
     </svg>
     <div class="rest-time-text tnum" id="rest-display">1:30</div>
+    <div id="rest-next" style="font-size:14px;color:var(--text2);margin:2px 0 10px;min-height:20px;text-align:center"></div>
     <div class="rest-btns">
       <button class="btn btn-secondary" id="rest-minus" aria-label="減少15秒">−15s</button>
       <button class="btn btn-secondary" id="rest-plus" aria-label="增加30秒">+30s</button>
@@ -534,10 +535,46 @@ body{display:flex;flex-direction:column;overflow:hidden}
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div id="history-detail-content"></div>
-    <div id="history-detail-footer" style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-secondary" style="flex:1" id="modal-history-close">關閉</button>
-      <button class="btn btn-secondary" style="flex:1" id="btn-edit-workout">編輯</button>
-      <button class="btn btn-red" style="flex:1" id="btn-delete-workout">刪除</button>
+    <div id="history-detail-footer" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" id="btn-edit-workout">編輯</button>
+      <button class="btn btn-secondary" id="btn-copy-workout">複製到其他日期</button>
+      <button class="btn btn-red" id="btn-delete-workout">刪除</button>
+      <button class="btn btn-secondary" id="modal-history-close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Plate calculator -->
+<div class="modal-backdrop hidden" id="modal-plate">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">槓片計算機</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div style="flex:1">
+        <div class="form-label" style="margin-bottom:4px">目標重量</div>
+        <input class="form-input" type="number" inputmode="decimal" id="plate-target" step="0.5">
+      </div>
+      <div style="width:110px">
+        <div class="form-label" style="margin-bottom:4px">槓重</div>
+        <select class="form-input form-select" id="plate-bar"></select>
+      </div>
+    </div>
+    <div id="plate-result" style="background:var(--input-bg);border-radius:12px;padding:16px;text-align:center;min-height:60px;margin-bottom:12px"></div>
+    <button class="btn btn-secondary" style="width:100%" id="plate-close">關閉</button>
+  </div>
+</div>
+
+<!-- MODAL: Copy workout to another date -->
+<div class="modal-backdrop hidden" id="modal-copy-date" style="z-index:250">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">複製訓練紀錄</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:10px" id="copy-date-desc"></div>
+    <div class="form-label" style="margin-bottom:4px">複製到日期</div>
+    <input class="form-input" type="date" id="copy-date-input" style="margin-bottom:14px">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" id="copy-date-cancel">取消</button>
+      <button class="btn btn-primary" style="flex:1" id="copy-date-ok">複製</button>
     </div>
   </div>
 </div>
@@ -1147,10 +1184,11 @@ function clearActive(){
   document.getElementById('finish-bar').classList.remove('show');
 }
 function mkEx(ex){
-  const workouts=getWorkouts();
-  // Find last workout with this exercise
+  // Find the most recent workout containing this exercise BY DATE —
+  // array order isn't chronological once backdated/edited records exist
+  const workouts=getWorkouts().slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   let lastSets=[];
-  for(let i=workouts.length-1;i>=0;i--){
+  for(let i=0;i<workouts.length;i++){
     const we=workouts[i].exercises.find(e=>e.exerciseId===ex.id);
     if(we){lastSets=we.sets.filter(s=>!s.isWarmup);break;}
   }
@@ -1207,6 +1245,7 @@ function renderWorkout(){
         <button class="btn btn-sm btn-secondary" data-add-set="${ei}">+正式組</button>
         ${hasPrev?`<button class="btn btn-sm btn-secondary" data-reuse="${ei}">沿用上次</button>`:''}
         <button class="btn btn-sm btn-secondary" data-rest="${ei}" aria-label="設定此動作的組間休息">${svgIcon('clock',13)} ${(function(){const r=getRestFor(ex.exerciseId);return r>0?r+'s':'無';})()}</button>
+        <button class="btn btn-sm btn-secondary" data-plate="${ei}" aria-label="槓片計算機">槓片</button>
         <label style="display:flex;align-items:center;gap:4px;font-size:12px">
           <input type="checkbox" data-bw="${ei}" ${ex.sets[0]&&ex.sets[0].isBodyweight?'checked':''}> 體重
         </label>
@@ -1250,6 +1289,11 @@ function renderWorkout(){
       renderWorkout();
     });
     block.querySelector(`[data-rest="${ei}"]`).addEventListener('click',()=>openRestSetting(ex.exerciseId,ex.name));
+    block.querySelector(`[data-plate="${ei}"]`).addEventListener('click',()=>{
+      const s2=getSettings();
+      const next=ex.sets.find(st=>!st.done&&!st.isWarmup)||ex.sets[ex.sets.length-1];
+      openPlateCalc(next&&next.weight?displayW(next.weight,s2.unit):'');
+    });
     setupDragHandle(block.querySelector(`[data-drag="${ei}"]`),ei);
   });
   persistActive();
@@ -1290,7 +1334,11 @@ function renderSets(ei){
     const hint=(!isW&&set.prevWeight!=null)?`<div class="hint-text">上次 ${displayW(set.prevWeight,s.unit)}${s.unit}×${set.prevReps}次</div>`:'';
     row.innerHTML=`
       <td>${numCell}</td>
-      <td><input class="set-input" type="number" step="0.5" value="${set.isBodyweight?'':displayW(set.weight||0,s.unit)}" ${set.isBodyweight?'disabled placeholder="體重"':''} data-si="${si}" data-field="weight" style="width:70px">${hint}</td>
+      <td><div style="display:flex;align-items:center;justify-content:center;gap:4px">
+        <button data-step="-1" data-ssi="${si}" ${set.isBodyweight?'disabled':''} style="width:30px;height:38px;border:none;border-radius:8px;background:var(--input-bg);color:var(--text2);font-size:17px;cursor:pointer;flex-shrink:0" aria-label="減少重量">−</button>
+        <input class="set-input" type="number" step="0.5" value="${set.isBodyweight?'':displayW(set.weight||0,s.unit)}" ${set.isBodyweight?'disabled placeholder="體重"':''} data-si="${si}" data-field="weight" style="width:60px">
+        <button data-step="1" data-ssi="${si}" ${set.isBodyweight?'disabled':''} style="width:30px;height:38px;border:none;border-radius:8px;background:var(--input-bg);color:var(--text2);font-size:17px;cursor:pointer;flex-shrink:0" aria-label="增加重量">＋</button>
+      </div>${hint}</td>
       <td><input class="set-input" type="number" value="${set.reps||0}" data-si="${si}" data-field="reps" style="width:56px"></td>
       <td><button class="done-btn${set.done?' checked':''}" data-done="${si}" role="checkbox" aria-pressed="${set.done?'true':'false'}" aria-label="${set.done?'取消完成此組':'標記此組完成'}">✓</button></td>
       <td><button data-delset="${si}" style="border:none;background:none;color:var(--text2);font-size:17px;cursor:pointer;padding:4px 6px" aria-label="刪除此組">×</button></td>`;
@@ -1304,6 +1352,17 @@ function renderSets(ei){
         persistActive();
       });
     });
+    row.querySelectorAll(`[data-ssi="${si}"]`).forEach(btn=>btn.addEventListener('click',()=>{
+      const inp=row.querySelector('input[data-field="weight"]');
+      const stepAmt=s.unit==='lb'?5:2.5;
+      const cur=parseFloat(inp.value)||0;
+      const next=Math.max(0,Math.round((cur+stepAmt*parseInt(btn.dataset.step))*100)/100);
+      inp.value=next;
+      currentWorkout.exercises[ei].sets[si].weight=toKg(next,s.unit);
+      haptic(5);
+      updateORMDisplay(ei);
+      persistActive();
+    }));
     row.querySelector(`[data-done="${si}"]`).addEventListener('click',()=>toggleSetDone(ei,si));
     row.querySelector(`[data-delset="${si}"]`).addEventListener('click',()=>{
       currentWorkout.exercises[ei].sets.splice(si,1);
@@ -1394,9 +1453,24 @@ function setupDragHandle(handle,startEi){
 }
 
 // ===================== REST TIMER =====================
+// What's coming after this rest: the next undone working set in the session
+function findNextSet(){
+  if(!currentWorkout)return null;
+  const s=getSettings();
+  for(const ex of currentWorkout.exercises){
+    const idx=ex.sets.findIndex(st=>!st.done&&!st.isWarmup);
+    if(idx>=0){
+      const st=ex.sets[idx];
+      const w=st.isBodyweight?'體重':displayW(st.weight||0,s.unit)+s.unit;
+      return `下一組：${ex.name} 第${ex.sets.filter(x=>!x.isWarmup).indexOf(st)+1}組 ${w}×${st.reps||0}`;
+    }
+  }
+  return '所有組數完成，最後衝刺！';
+}
 function startRestTimer(secs){
   stopRestTimer();
   restTotal=secs;restEndTs=Date.now()+secs*1000;restRemaining=secs;
+  document.getElementById('rest-next').textContent=findNextSet()||'';
   document.getElementById('rest-overlay').classList.remove('hidden');
   updateRestDisplay();
   setTitleCountdown(restRemaining);
@@ -1455,6 +1529,44 @@ document.getElementById('rest-setting-save').addEventListener('click',()=>{
 });
 document.getElementById('rest-setting-default').addEventListener('click',()=>saveRestSetting(null));
 document.getElementById('modal-rest-setting').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+
+// ---- Plate calculator ----
+function openPlateCalc(targetDisplay){
+  const s=getSettings();
+  const bars=s.unit==='lb'?[45,35]:[20,15];
+  const sel=document.getElementById('plate-bar');
+  sel.innerHTML=bars.map(b=>`<option value="${b}">${b}${s.unit}</option>`).join('');
+  sel.value=s.barWeight&&bars.includes(s.barWeight)?s.barWeight:bars[0];
+  document.getElementById('plate-target').value=targetDisplay||'';
+  renderPlateResult();
+  document.getElementById('modal-plate').classList.remove('hidden');
+}
+function renderPlateResult(){
+  const s=getSettings();
+  const target=parseFloat(document.getElementById('plate-target').value)||0;
+  const bar=parseFloat(document.getElementById('plate-bar').value)||20;
+  const el=document.getElementById('plate-result');
+  if(target<=0){el.innerHTML=`<span style="color:var(--text2);font-size:14px">輸入目標重量</span>`;return;}
+  if(target<bar){el.innerHTML=`<span style="color:var(--red);font-size:14px">目標重量低於槓重 ${bar}${s.unit}</span>`;return;}
+  const plates=s.unit==='lb'?[45,35,25,10,5,2.5]:[25,20,15,10,5,2.5,1.25];
+  let perSide=(target-bar)/2, used=[];
+  plates.forEach(p=>{while(perSide>=p-1e-9){used.push(p);perSide=Math.round((perSide-p)*100)/100;}});
+  const counts={};used.forEach(p=>counts[p]=(counts[p]||0)+1);
+  const parts=Object.keys(counts).sort((a,b)=>b-a).map(p=>counts[p]>1?`${p}×${counts[p]}`:`${p}`);
+  const exact=perSide<1e-9;
+  const actual=Math.round((bar+2*used.reduce((a,b)=>a+b,0))*100)/100;
+  el.innerHTML=`
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px">每邊掛片（${s.unit}）</div>
+    <div style="font-size:22px;font-weight:700;color:var(--accent)" class="tnum">${used.length?parts.join(' + '):'空槓'}</div>
+    ${exact?'':`<div style="font-size:12px;color:var(--orange);margin-top:6px">無法精確配出，實際 ${actual}${s.unit}（差 ${Math.round((target-actual)*100)/100}${s.unit}）</div>`}`;
+}
+document.getElementById('plate-target').addEventListener('input',renderPlateResult);
+document.getElementById('plate-bar').addEventListener('change',function(){
+  const s=getSettings();s.barWeight=parseFloat(this.value);saveSettings(s);
+  renderPlateResult();
+});
+document.getElementById('plate-close').addEventListener('click',()=>document.getElementById('modal-plate').classList.add('hidden'));
+document.getElementById('modal-plate').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 function updateRestDisplay(){
   const m=Math.floor(restRemaining/60),s=restRemaining%60;
   document.getElementById('rest-display').textContent=`${m}:${String(s).padStart(2,'0')}`;
@@ -1484,8 +1596,18 @@ function finishWorkout(){
   clearInterval(timerInterval);
   stopRestTimer();
   clearActive(); // remove saved session + hide the finish bar
+  // If this session deviated from its source routine, offer to update it after the summary
+  pendingRoutineUpdate=null;
+  if(currentWorkout.routineId){
+    const rt=getRoutines().find(r=>r.id===currentWorkout.routineId);
+    const newIds=currentWorkout.exercises.map(e=>e.exerciseId);
+    if(rt&&newIds.length>0&&JSON.stringify(rt.exerciseIds)!==JSON.stringify(newIds)){
+      pendingRoutineUpdate={routineId:rt.id,name:rt.name,newIds};
+    }
+  }
   showFinishSummary(currentWorkout);
 }
+let pendingRoutineUpdate=null;
 function showFinishSummary(wo){
   const s=getSettings();
   const doneSets=wo.exercises.reduce((a,e)=>a+e.sets.filter(s=>!s.isWarmup&&s.done).length,0);
@@ -1505,6 +1627,14 @@ document.getElementById('finish-done').addEventListener('click',()=>{
   document.getElementById('modal-finish').classList.add('hidden');
   currentWorkout=null;
   showPage('home');
+  if(pendingRoutineUpdate){
+    const p=pendingRoutineUpdate;pendingRoutineUpdate=null;
+    confirmSheet(`這次訓練的動作與課表「${p.name}」不同，要把課表更新成這次的動作嗎？`,()=>{
+      const routines=getRoutines();
+      const rt=routines.find(r=>r.id===p.routineId);
+      if(rt){rt.exerciseIds=p.newIds;saveRoutines(routines);renderRoutineList();toast('已更新課表「'+p.name+'」');}
+    },null,'更新課表');
+  }
 });
 document.getElementById('finish-share').addEventListener('click',()=>{
   const workouts=getWorkouts();
@@ -1741,6 +1871,33 @@ function saveHistoryEdit(wid){
 document.getElementById('btn-edit-workout').addEventListener('click',()=>{if(selectedHistoryId)editHistory(selectedHistoryId);});
 document.getElementById('modal-history-close').addEventListener('click',()=>document.getElementById('modal-history-detail').classList.add('hidden'));
 document.getElementById('modal-history-detail').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('btn-copy-workout').addEventListener('click',()=>{
+  if(!selectedHistoryId)return;
+  const w=getWorkouts().find(w=>w.id===selectedHistoryId);
+  if(!w)return;
+  document.getElementById('copy-date-desc').textContent=`「${w.routineName||'自由訓練'}」（${fmtDate(w.date)}）的所有動作與組數會完整複製到你選的日期。`;
+  document.getElementById('copy-date-input').value=today();
+  document.getElementById('modal-copy-date').classList.remove('hidden');
+});
+document.getElementById('copy-date-ok').addEventListener('click',()=>{
+  const date=document.getElementById('copy-date-input').value;
+  if(!date||!selectedHistoryId)return;
+  const workouts=getWorkouts();
+  const src=workouts.find(w=>w.id===selectedHistoryId);
+  if(!src)return;
+  const copy=JSON.parse(JSON.stringify(src));
+  copy.id=uid();
+  copy.date=date;
+  workouts.push(copy);
+  saveWorkouts(workouts);
+  document.getElementById('modal-copy-date').classList.add('hidden');
+  document.getElementById('modal-history-detail').classList.add('hidden');
+  renderHistory();renderCalendar();
+  if(selectedDate)renderDayWorkouts(selectedDate);
+  toast('已複製到 '+fmtDate(date));
+});
+document.getElementById('copy-date-cancel').addEventListener('click',()=>document.getElementById('modal-copy-date').classList.add('hidden'));
+document.getElementById('modal-copy-date').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 document.getElementById('btn-delete-workout').addEventListener('click',()=>{
   if(!selectedHistoryId)return;
   confirmSheet('確定刪除此訓練記錄？',()=>{
