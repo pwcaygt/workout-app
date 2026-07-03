@@ -138,7 +138,8 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .cat-tabs::-webkit-scrollbar{display:none}
 .cat-tab{border:none;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--input-bg);color:var(--text2);transition:all .15s}
 .cat-tab.active{background:var(--accent);color:#fff}
-.ex-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--sep)}
+.ex-row{display:flex;align-items:center;padding:12px 4px;border-bottom:1px solid var(--sep);transition:background .15s}
+.ex-row:active{background:var(--input-bg)}
 .ex-row:last-child{border-bottom:none}
 .ex-info{flex:1}
 .ex-row-name{font-weight:600;font-size:15px}
@@ -574,7 +575,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 <div class="modal-backdrop hidden" id="modal-custom-ex" style="z-index:220">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">新增自訂動作</div>
+    <div class="modal-title" id="custom-ex-title">新增自訂動作</div>
     <div class="form-group">
       <div class="form-label">動作名稱</div>
       <input class="form-input" id="custom-ex-name" placeholder="動作名稱">
@@ -586,6 +587,10 @@ body{display:flex;flex-direction:column;overflow:hidden}
     <div class="form-group">
       <div class="form-label">肌肉群（逗號分隔）</div>
       <input class="form-input" id="custom-ex-muscles" placeholder="例：胸大肌,三頭肌">
+    </div>
+    <div class="form-group">
+      <div class="form-label">組間休息（秒，留空＝用全域預設）</div>
+      <input class="form-input" id="custom-ex-rest" type="number" inputmode="numeric" placeholder="例：120">
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-secondary" style="flex:1" id="custom-ex-cancel">取消</button>
@@ -636,11 +641,19 @@ body{display:flex;flex-direction:column;overflow:hidden}
 <div class="modal-backdrop hidden" id="modal-ex-progress">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:18px;font-weight:700" id="ex-progress-title">動作進步</div>
-      <button class="btn btn-sm btn-secondary" id="ex-progress-close">✕</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:18px;font-weight:700" id="ex-progress-title">動作詳情</div>
+      <button class="btn btn-sm btn-secondary" id="ex-progress-close" aria-label="關閉" style="min-width:44px;min-height:36px">✕</button>
     </div>
-    <div class="chart-wrap" style="height:250px"><canvas id="chart-ex-progress-modal"></canvas></div>
+    <div id="ex-detail-sub" style="font-size:13px;color:var(--text2);margin-bottom:8px"></div>
+    <div id="ex-detail-muscles" class="muscle-tags" style="margin-bottom:12px"></div>
+    <div id="ex-detail-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="chart-ex-progress-modal"></canvas></div>
+    <button class="btn btn-secondary" id="ex-detail-edit" style="width:100%;margin-top:14px;padding:14px;font-size:16px;font-weight:600">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>
+      編輯動作
+    </button>
+    <button id="ex-detail-delete" style="width:100%;border:none;background:none;color:var(--red);font-size:15px;padding:14px 0 4px;margin-top:8px;cursor:pointer">刪除動作</button>
   </div>
 </div>
 
@@ -1766,59 +1779,52 @@ function renderExList(){
   const el=document.getElementById('ex-list');
   if(filtered.length===0){el.innerHTML=`<div class="empty-state">找不到動作</div>`;return;}
   el.innerHTML=filtered.map(e=>`
-    <div class="ex-row">
+    <div class="ex-row" data-exdetail="${e.id}" role="button" aria-label="查看動作詳情" style="cursor:pointer;min-height:56px">
       <div class="ex-info">
         <div class="ex-row-name">${e.name}${e.custom?`<span style="font-size:10px;color:var(--accent);margin-left:6px;border:1px solid var(--accent);border-radius:4px;padding:1px 4px">自訂</span>`:`<span style="font-size:11px;color:var(--text2);margin-left:6px">${e.cat}</span>`}${freq[e.id]?`<span style="font-size:10px;color:var(--text2);margin-left:4px">(${freq[e.id]}次)</span>`:''}</div>
         <div class="muscle-tags">${(e.muscles||[]).map(m=>`<span class="muscle-tag">${m}</span>`).join('')}</div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn btn-sm btn-secondary" data-prog="${e.id}" aria-label="查看進步曲線">${svgIcon('chart',15)}</button>
-        <button class="btn btn-sm btn-red" data-delex="${e.id}" aria-label="刪除動作">${svgIcon('trash',15)}</button>
-      </div>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text2);flex-shrink:0" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
     </div>`).join('');
-  el.querySelectorAll('[data-prog]').forEach(b=>b.addEventListener('click',()=>openExProgress(b.dataset.prog)));
-  el.querySelectorAll('[data-delex]').forEach(b=>b.addEventListener('click',()=>{
-    const eid=b.dataset.delex;
-    const exs=getExercises();
-    const ex=exs.find(e=>e.id===eid);
-    if(!ex)return;
-    const routines=getRoutines();
-    const usedRoutines=routines.filter(r=>r.exerciseIds.includes(eid));
-    const workouts=getWorkouts();
-    const usedWorkouts=workouts.filter(w=>w.exercises.some(e=>e.exerciseId===eid)).length;
-    let msg=`確定刪除「${ex.name}」？`;
-    if(usedRoutines.length>0)msg=`「${ex.name}」已用於 ${usedRoutines.length} 個課表，刪除後課表中會移除此動作。歷史紀錄不受影響。確定刪除？`;
-    else if(usedWorkouts>0)msg=`「${ex.name}」有 ${usedWorkouts} 筆歷史記錄，刪除動作後歷史紀錄不受影響。確定刪除？`;
-    if(!confirm(msg))return;
-    // Remove from exercises
-    saveExercises(exs.filter(e=>e.id!==eid));
-    // Remove from routines
-    routines.forEach(r=>{r.exerciseIds=r.exerciseIds.filter(x=>x!==eid);});
-    saveRoutines(routines);
-    // Remove from tracked exercises in settings
-    const s=getSettings();
-    if(s.trackedExercises&&s.trackedExercises.includes(eid)){
-      s.trackedExercises=s.trackedExercises.filter(x=>x!==eid);
-      saveSettings(s);
-    }
-    renderExList();
-  }));
+  el.querySelectorAll('[data-exdetail]').forEach(row=>row.addEventListener('click',()=>openExDetail(row.dataset.exdetail)));
 }
 document.getElementById('ex-search').addEventListener('input',renderExList);
 document.getElementById('btn-add-custom-ex').addEventListener('click',()=>openCustomExModal('library'));
 
-function openCustomExModal(context){
+// context: 'workout' | 'routine' | 'library'; editId set = edit an existing exercise
+function openCustomExModal(context,editId){
+  const editing=editId?getExercises().find(e=>e.id===editId):null;
   const sel=document.getElementById('custom-ex-cat');
   sel.innerHTML=CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
-  document.getElementById('custom-ex-name').value='';
-  document.getElementById('custom-ex-muscles').value='';
+  document.getElementById('custom-ex-title').textContent=editing?'編輯動作':'新增自訂動作';
+  document.getElementById('custom-ex-save').textContent=editing?'儲存':'新增';
+  document.getElementById('custom-ex-name').value=editing?editing.name:'';
+  if(editing)sel.value=editing.cat;
+  document.getElementById('custom-ex-muscles').value=editing?(editing.muscles||[]).join(','):'';
+  document.getElementById('custom-ex-rest').value=(editing&&editing.restTime!=null)?editing.restTime:'';
   document.getElementById('modal-custom-ex').classList.remove('hidden');
   document.getElementById('custom-ex-save').onclick=()=>{
     const name=document.getElementById('custom-ex-name').value.trim();
     if(!name)return;
     const cat=document.getElementById('custom-ex-cat').value;
     const muscles=document.getElementById('custom-ex-muscles').value.split(',').map(m=>m.trim()).filter(Boolean);
+    const restRaw=document.getElementById('custom-ex-rest').value.trim();
+    const rest=restRaw===''?null:Math.max(0,parseInt(restRaw)||0);
+    if(editing){
+      const exs=getExercises();
+      const ex=exs.find(e=>e.id===editId);
+      if(ex){
+        ex.name=name;ex.cat=cat;ex.muscles=muscles;
+        if(rest==null)delete ex.restTime; else ex.restTime=rest;
+        saveExercises(exs);
+      }
+      document.getElementById('modal-custom-ex').classList.add('hidden');
+      renderExList();
+      toast('已更新「'+name+'」');
+      return;
+    }
     const ex={id:'c'+uid(),name,cat,muscles,custom:true};
+    if(rest!=null)ex.restTime=rest;
     const exs=getExercises();exs.push(ex);saveExercises(exs);
     document.getElementById('modal-custom-ex').classList.add('hidden');
     if(context==='workout'&&currentWorkout){
@@ -1848,13 +1854,54 @@ document.getElementById('btn-reset-ex-lib').addEventListener('click',()=>{
 
 // Exercise progress modal
 let exProgressChart=null;
-function openExProgress(exId){
-  const exercises=getExercises();
-  const ex=exercises.find(e=>e.id===exId);
+// Exercise detail sheet: tap a row to view info/PR/chart; edit & delete live inside
+function openExDetail(exId){
+  const s=getSettings();
+  const ex=getExercises().find(e=>e.id===exId);
   if(!ex)return;
-  document.getElementById('ex-progress-title').textContent=ex.name+' 進步';
+  const workouts=getWorkouts();
+  const used=workouts.filter(w=>w.exercises.some(e=>e.exerciseId===exId)).length;
+  document.getElementById('ex-progress-title').textContent=ex.name;
+  const restLabel=ex.restTime!=null?(ex.restTime>0?ex.restTime+'s休息':'無休息'):'';
+  document.getElementById('ex-detail-sub').textContent=[ex.cat,used?('已練 '+used+' 次'):'尚未練過',restLabel].filter(Boolean).join(' · ');
+  document.getElementById('ex-detail-muscles').innerHTML=(ex.muscles||[]).map(m=>`<span class="muscle-tag">${m}</span>`).join('');
+  const pr=computePRs()[exId];
+  const orm=pr?oneRM(pr.bestWeight,pr.bestReps):0;
+  document.getElementById('ex-detail-stats').innerHTML=`
+    <div class="pr-card"><div class="pr-weight tnum">${pr?displayW(pr.bestWeight,s.unit)+s.unit:'-'}</div><div class="pr-1rm">最重紀錄</div></div>
+    <div class="pr-card"><div class="pr-weight tnum">${orm?Math.round(displayW(orm,s.unit)*10)/10+s.unit:'-'}</div><div class="pr-1rm">預估 1RM</div></div>`;
+  document.getElementById('ex-detail-edit').onclick=()=>{
+    document.getElementById('modal-ex-progress').classList.add('hidden');
+    openCustomExModal('library',exId);
+  };
+  document.getElementById('ex-detail-delete').onclick=()=>deleteExerciseFlow(exId);
+  haptic(10);
   document.getElementById('modal-ex-progress').classList.remove('hidden');
   setTimeout(()=>renderExProgressChart(exId,'chart-ex-progress-modal'),100);
+}
+function deleteExerciseFlow(exId){
+  const exs=getExercises();
+  const ex=exs.find(e=>e.id===exId);
+  if(!ex)return;
+  const routines=getRoutines();
+  const usedRoutines=routines.filter(r=>r.exerciseIds.includes(exId));
+  const usedWorkouts=getWorkouts().filter(w=>w.exercises.some(e=>e.exerciseId===exId)).length;
+  let msg=`確定刪除「${ex.name}」？`;
+  if(usedRoutines.length>0)msg=`「${ex.name}」已用於 ${usedRoutines.length} 個課表，刪除後課表中會移除此動作。歷史紀錄不受影響。確定刪除？`;
+  else if(usedWorkouts>0)msg=`「${ex.name}」有 ${usedWorkouts} 筆歷史記錄，刪除動作後歷史紀錄不受影響。確定刪除？`;
+  confirmSheet(msg,()=>{
+    saveExercises(exs.filter(e=>e.id!==exId));
+    routines.forEach(r=>{r.exerciseIds=r.exerciseIds.filter(x=>x!==exId);});
+    saveRoutines(routines);
+    const s=getSettings();
+    if(s.trackedExercises&&s.trackedExercises.includes(exId)){
+      s.trackedExercises=s.trackedExercises.filter(x=>x!==exId);
+      saveSettings(s);
+    }
+    document.getElementById('modal-ex-progress').classList.add('hidden');
+    renderExList();
+    toast('已刪除「'+ex.name+'」');
+  });
 }
 document.getElementById('ex-progress-close').addEventListener('click',()=>document.getElementById('modal-ex-progress').classList.add('hidden'));
 document.getElementById('modal-ex-progress').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
