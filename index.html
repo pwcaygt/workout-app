@@ -311,6 +311,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
         <span class="date-badge tnum" id="workout-date-badge"></span>
       </div>
     </div>
+    <div id="warmup-banner" style="margin:0 16px 4px"></div>
     <div id="exercise-list"></div>
     <div style="padding:8px 16px">
       <button class="btn btn-secondary" style="width:100%" id="btn-add-exercise">+ 新增動作</button>
@@ -550,6 +551,38 @@ body{display:flex;flex-direction:column;overflow:hidden}
       <button class="btn btn-secondary" id="btn-copy-workout">複製到其他日期</button>
       <button class="btn btn-red" id="btn-delete-workout">刪除</button>
       <button class="btn btn-secondary" id="modal-history-close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Pre-lifting warmup checklist -->
+<div class="modal-backdrop hidden" id="modal-warmup">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" style="margin-bottom:0">重訓前暖身</div>
+      <button class="btn btn-sm btn-secondary" id="warmup-close" aria-label="關閉" style="min-width:44px">✕</button>
+    </div>
+    <div id="warmup-progress" style="font-size:13px;color:var(--text2);margin-bottom:10px"></div>
+    <div id="warmup-rule" style="background:rgba(255,159,10,0.12);border-left:4px solid var(--orange);border-radius:0 8px 8px 0;padding:10px 12px;font-size:12.5px;line-height:1.5;margin-bottom:12px"></div>
+    <div id="warmup-list"></div>
+    <button class="btn btn-primary" id="warmup-finish" style="width:100%;margin-top:12px;padding:14px" disabled>完成暖身</button>
+    <button class="btn-sm" id="warmup-edit-open" style="width:100%;border:none;background:none;color:var(--text2);font-size:13px;padding:12px 0 4px;cursor:pointer">編輯暖身內容</button>
+  </div>
+</div>
+
+<!-- MODAL: Edit warmup items -->
+<div class="modal-backdrop hidden" id="modal-warmup-edit" style="z-index:220">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">編輯暖身內容</div>
+    <div class="form-label" style="margin-bottom:4px">安全原則（顯示在頂部）</div>
+    <textarea class="form-input" id="warmup-rule-input" rows="3" style="margin-bottom:12px;font-size:13px"></textarea>
+    <div id="warmup-edit-list"></div>
+    <button class="btn btn-secondary" id="warmup-add-item" style="width:100%;margin-top:4px">＋ 新增暖身項目</button>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" style="flex:1" id="warmup-edit-cancel">取消</button>
+      <button class="btn btn-primary" style="flex:1" id="warmup-edit-save">儲存</button>
     </div>
   </div>
 </div>
@@ -1221,6 +1254,7 @@ function updateTimer(){
 
 function renderWorkout(){
   if(!currentWorkout)return;
+  renderWarmupBanner();
   const s=getSettings();
   const el=document.getElementById('exercise-list');
   el.innerHTML='';
@@ -1577,6 +1611,128 @@ document.getElementById('plate-bar').addEventListener('change',function(){
 });
 document.getElementById('plate-close').addEventListener('click',()=>document.getElementById('modal-plate').classList.add('hidden'));
 document.getElementById('modal-plate').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+
+// ===================== PRE-LIFTING WARMUP =====================
+// Defaults transcribed from the user's corrective warmup card (處方 115-07-13)
+const DEFAULT_WARMUP_RULE='手腕原則：右腕 TFCC 舊傷 · ECU 腫脹 — 全程不用手掌撐地。需支撐時改拳撐／前臂撐／中立握，避免腕背屈＋尺側偏移。';
+const DEFAULT_WARMUP=[
+  {id:'w1',title:'側躺開書',reps:'×8 每側',cue:'側躺、雙膝疊好，上方手往後開，眼睛跟著手走；末端吐氣讓肋廓打開。上膝離地＝在用髖代償。'},
+  {id:'w2',title:'靠牆天使',reps:'×10 慢速',cue:'腳跟離牆約 15cm、下背貼牆、肘 90°，手臂貼牆慢慢上滑；肩不聳、腕不彎。手臂離牆就停在該高度。'},
+  {id:'w3',title:'死蟲',reps:'×8 每側 · 末端停 2–3 秒',cue:'下背壓平貼地、肋骨收；只有四肢在動，吐氣延伸、吸氣收回，全程不憋氣。慢比快更吃核心。'},
+  {id:'w4',title:'鳥狗',reps:'×8 每側 · 每次停 3–5 秒',cue:'伸出對側手腳時脊椎保持穩定，別過度伸腰。✋ 改拳撐或前臂撐，避免腕背屈。'},
+  {id:'w5',title:'單腳臀橋',reps:'×12 每側 · 右腳 +1 組',cue:'用臀部發力頂起、不要靠下背；骨盆保持水平不歪斜。左右都做，右腳補一組。'}
+];
+function getWarmupItems(){return ls('warmupItems')||DEFAULT_WARMUP}
+function getWarmupRule(){const r=localStorage.getItem('warmupRule');return r!=null?r:DEFAULT_WARMUP_RULE}
+function ensureWarmupState(){
+  if(!currentWorkout)return null;
+  if(!currentWorkout.warmup)currentWorkout.warmup={checked:[],done:false};
+  return currentWorkout.warmup;
+}
+function renderWarmupBanner(){
+  const el=document.getElementById('warmup-banner');
+  if(!el)return;
+  if(!currentWorkout){el.innerHTML='';return;}
+  const wu=ensureWarmupState();
+  if(wu.done){
+    el.innerHTML=`<div id="warmup-open" style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(52,199,89,0.12);border-radius:10px;font-size:13px;font-weight:600;color:var(--green);cursor:pointer">✓ 暖身完成</div>`;
+  }else{
+    const total=getWarmupItems().length;
+    el.innerHTML=`<div id="warmup-open" role="button" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:rgba(255,159,10,0.12);border-radius:12px;cursor:pointer">
+      <div><div style="font-size:15px;font-weight:700">🔥 重訓前暖身</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px">${total} 項 · 約 10 分鐘 · ${wu.checked.length}/${total} 完成</div></div>
+      <span style="color:var(--orange);font-size:18px">›</span>
+    </div>`;
+  }
+  document.getElementById('warmup-open').addEventListener('click',openWarmup);
+}
+function openWarmup(){
+  renderWarmupChecklist();
+  document.getElementById('modal-warmup').classList.remove('hidden');
+}
+function renderWarmupChecklist(){
+  const wu=ensureWarmupState();
+  if(!wu)return;
+  const items=getWarmupItems();
+  document.getElementById('warmup-rule').textContent=getWarmupRule();
+  document.getElementById('warmup-rule').style.display=getWarmupRule()?'':'none';
+  document.getElementById('warmup-progress').textContent=`依序完成 ${wu.checked.length}/${items.length}`;
+  document.getElementById('warmup-list').innerHTML=items.map((it,i)=>{
+    const done=wu.checked.includes(it.id);
+    return`<div data-wuitem="${it.id}" style="display:flex;gap:12px;padding:12px 4px;border-bottom:1px solid var(--sep);cursor:pointer;${done?'opacity:.55':''}">
+      <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;margin-top:2px;${done?'background:var(--green);color:#fff':'background:var(--input-bg);color:var(--accent)'}">${done?'✓':(i+1)}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+          <span style="font-size:16px;font-weight:700;${done?'text-decoration:line-through':''}">${it.title}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0" class="tnum">${it.reps||''}</span>
+        </div>
+        ${it.cue?`<div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-top:3px">${it.cue}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-wuitem]').forEach(row=>row.addEventListener('click',()=>{
+    const id=row.dataset.wuitem;
+    const idx=wu.checked.indexOf(id);
+    if(idx>=0)wu.checked.splice(idx,1);else{wu.checked.push(id);haptic(10);}
+    persistActive();
+    renderWarmupChecklist();
+    renderWarmupBanner();
+  }));
+  const allDone=items.length>0&&items.every(it=>wu.checked.includes(it.id));
+  document.getElementById('warmup-finish').disabled=!allDone;
+}
+document.getElementById('warmup-finish').addEventListener('click',()=>{
+  const wu=ensureWarmupState();
+  if(!wu)return;
+  wu.done=true;
+  persistActive();
+  haptic([15,60,15]);
+  document.getElementById('modal-warmup').classList.add('hidden');
+  renderWarmupBanner();
+  toast('暖身完成，開始主訓練 💪');
+});
+document.getElementById('warmup-close').addEventListener('click',()=>document.getElementById('modal-warmup').classList.add('hidden'));
+document.getElementById('modal-warmup').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+// ---- Warmup editor ----
+document.getElementById('warmup-edit-open').addEventListener('click',()=>{
+  document.getElementById('warmup-rule-input').value=getWarmupRule();
+  warmupDraft=JSON.parse(JSON.stringify(getWarmupItems()));
+  renderWarmupEditList();
+  document.getElementById('modal-warmup-edit').classList.remove('hidden');
+});
+let warmupDraft=[];
+function renderWarmupEditList(){
+  document.getElementById('warmup-edit-list').innerHTML=warmupDraft.map((it,i)=>`
+    <div style="border:1px solid var(--sep);border-radius:10px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <input class="form-input" value="${(it.title||'').replace(/"/g,'&quot;')}" data-wf="title" data-wi="${i}" placeholder="動作名稱" style="flex:1.2;padding:8px">
+        <input class="form-input" value="${(it.reps||'').replace(/"/g,'&quot;')}" data-wf="reps" data-wi="${i}" placeholder="次數" style="flex:1;padding:8px">
+        <button data-wdel="${i}" style="border:none;background:none;color:var(--red);font-size:17px;cursor:pointer;padding:0 4px" aria-label="刪除項目">×</button>
+      </div>
+      <input class="form-input" value="${(it.cue||'').replace(/"/g,'&quot;')}" data-wf="cue" data-wi="${i}" placeholder="動作要領（選填）" style="width:100%;padding:8px;font-size:13px">
+    </div>`).join('');
+  document.querySelectorAll('#warmup-edit-list [data-wf]').forEach(inp=>inp.addEventListener('change',function(){
+    warmupDraft[+this.dataset.wi][this.dataset.wf]=this.value;
+  }));
+  document.querySelectorAll('#warmup-edit-list [data-wdel]').forEach(b=>b.addEventListener('click',()=>{
+    warmupDraft.splice(+b.dataset.wdel,1);renderWarmupEditList();
+  }));
+}
+document.getElementById('warmup-add-item').addEventListener('click',()=>{
+  warmupDraft.push({id:'wu'+uid(),title:'',reps:'',cue:''});
+  renderWarmupEditList();
+});
+document.getElementById('warmup-edit-save').addEventListener('click',()=>{
+  const items=warmupDraft.filter(it=>(it.title||'').trim());
+  ss('warmupItems',items);
+  localStorage.setItem('warmupRule',document.getElementById('warmup-rule-input').value.trim());
+  document.getElementById('modal-warmup-edit').classList.add('hidden');
+  renderWarmupChecklist();
+  renderWarmupBanner();
+  toast('已更新暖身內容');
+});
+document.getElementById('warmup-edit-cancel').addEventListener('click',()=>document.getElementById('modal-warmup-edit').classList.add('hidden'));
+document.getElementById('modal-warmup-edit').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
 function updateRestDisplay(){
   const m=Math.floor(restRemaining/60),s=restRemaining%60;
   document.getElementById('rest-display').textContent=`${m}:${String(s).padStart(2,'0')}`;
@@ -1771,7 +1927,7 @@ function openHistoryDetail(wid){
   const s=getSettings();
   const prs=computePRs();
   let html=`<div style="font-size:20px;font-weight:700">${w.routineName||'自由訓練'}</div>
-  <div style="color:var(--text2);margin-bottom:16px">${fmtDate(w.date)} · ${fmtDur(w.duration)}</div>`;
+  <div style="color:var(--text2);margin-bottom:16px">${fmtDate(w.date)} · ${fmtDur(w.duration)}${w.warmup&&w.warmup.done?' · <span style="color:var(--green);font-weight:600">✓ 已暖身</span>':''}</div>`;
   w.exercises.forEach(ex=>{
     html+=`<div style="margin-bottom:12px"><div style="font-weight:700;color:var(--accent);margin-bottom:4px">${ex.name}</div>`;
     ex.sets.filter(s2=>s2.done).forEach((set,i)=>{
