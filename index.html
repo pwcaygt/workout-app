@@ -359,6 +359,16 @@ body{display:flex;flex-direction:column;overflow:hidden}
       <div id="pr-feed"></div>
     </div>
     <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="card-title" style="margin-bottom:0">FFMI 無脂肪質量指數</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input class="form-input" type="number" inputmode="decimal" id="ffmi-height" placeholder="身高" style="width:70px;padding:6px 8px;font-size:14px" aria-label="身高（公分）">
+          <span style="font-size:12px;color:var(--text2)">cm</span>
+        </div>
+      </div>
+      <div id="ffmi-content"></div>
+    </div>
+    <div class="card">
       <div class="card-title">動作進步</div>
       <select class="chart-select" id="progress-ex-select" style="margin-bottom:8px"></select>
       <div class="chart-wrap"><canvas id="chart-progress"></canvas></div>
@@ -2185,6 +2195,7 @@ function renderStats(){
   renderStatsOverview();
   renderPRGrid();
   renderPRFeed();
+  renderFFMI();
   setTimeout(()=>{
     renderSBDChart();
     renderProgressChart();
@@ -2262,7 +2273,63 @@ const STAT_CARD_DEFS={
     return fmtDur(Math.round(w.reduce((a,x)=>a+x.duration,0)/w.length));
   }},
   streak:{label:'連續訓練天數',compute(w,s){return computeStreak().streak+'天';}},
+  ffmi:{label:'FFMI',compute(w,s){const f=computeFFMI();return f?f.ffmi.toFixed(1):'-';}},
 };
+
+// ---- FFMI (Fat-Free Mass Index) ----
+// FFM = weight × (1 − bodyFat%); FFMI = FFM / height(m)²;
+// adjusted FFMI normalizes to 1.8 m so different heights compare fairly.
+function computeFFMI(){
+  const h=(getProfile().height||0)/100;
+  if(!h)return null;
+  const meas=getMeasurements().slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))
+    .find(m=>m.weight!=null&&m.bodyFat!=null);
+  if(!meas)return null;
+  const ffm=meas.weight*(1-meas.bodyFat/100);
+  const ffmi=ffm/(h*h);
+  return{ffmi,adjusted:ffmi+6.1*(1.8-h),ffm,date:meas.date,weight:meas.weight,bodyFat:meas.bodyFat};
+}
+function renderFFMI(){
+  const hInput=document.getElementById('ffmi-height');
+  hInput.value=getProfile().height||'';
+  const el=document.getElementById('ffmi-content');
+  const s=getSettings();
+  const f=computeFFMI();
+  if(!f){
+    const missing=[];
+    if(!getProfile().height)missing.push('右上角輸入身高');
+    if(!getMeasurements().some(m=>m.weight!=null&&m.bodyFat!=null))missing.push('在「個人」頁新增一筆含體重與體脂的身體紀錄');
+    el.innerHTML=`<div style="color:var(--text2);font-size:14px;padding:8px 0">請${missing.join('，並')}，即可計算 FFMI。</div>`;
+    return;
+  }
+  const bands=[
+    {max:18,label:'一般以下'},{max:20,label:'一般'},{max:22,label:'訓練有成'},
+    {max:25,label:'進階'},{max:99,label:'接近自然極限'}
+  ];
+  const band=bands.find(b=>f.ffmi<b.max);
+  el.innerHTML=`
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span style="font-size:34px;font-weight:700;color:var(--accent)" class="tnum">${f.ffmi.toFixed(1)}</span>
+      <span style="font-size:14px;font-weight:600">${band.label}</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px" class="tnum">
+      除脂體重 ${displayW(f.ffm,s.unit)}${s.unit} · 調整後 FFMI ${f.adjusted.toFixed(1)}（1.8m 基準）
+    </div>
+    <div style="display:flex;gap:3px;margin-top:12px">
+      ${bands.map(b=>`<div style="flex:1;height:6px;border-radius:3px;background:${f.ffmi<b.max&&b===band?'var(--accent)':'var(--sep)'}"></div>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:4px">
+      <span>&lt;18</span><span>20</span><span>22</span><span>25</span><span>25+</span>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:10px">依 ${fmtDate(f.date)} 紀錄（${displayW(f.weight,s.unit)}${s.unit}／體脂 ${f.bodyFat}%）· 參考男性常用標準</div>`;
+}
+document.getElementById('ffmi-height').addEventListener('change',function(){
+  const p=getProfile();
+  const v=parseFloat(this.value);
+  p.height=isNaN(v)||v<=0?null:v;
+  saveProfile(p);
+  renderFFMI();
+});
 
 function renderStatsOverview(){
   const s=getSettings();
