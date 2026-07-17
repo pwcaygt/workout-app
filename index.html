@@ -2715,17 +2715,29 @@ document.getElementById('no-rest-check').addEventListener('change',function(){
 });
 
 // Measurements
+let measShowAll=false;
 function renderMeasList(){
   const s=getSettings();
-  const meas=getMeasurements().slice().reverse();
+  // Newest first BY DATE (insertion order isn't chronological once backfilled)
+  const meas=getMeasurements().slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const el=document.getElementById('meas-list');
   if(meas.length===0){el.innerHTML=`<div style="color:var(--text2);font-size:13px">尚無紀錄</div>`;return;}
-  el.innerHTML=meas.slice(0,10).map(m=>`
-    <div class="meas-card">
-      <div class="meas-date tnum">${m.date}</div>
-      <div class="meas-vals tnum">${m.weight!=null?'體重 '+displayW(m.weight,s.unit)+s.unit:''}${m.bodyFat!=null?' · 體脂 '+m.bodyFat+'%':''}${m.skeletalMuscle!=null?' · 骨骼肌 '+displayW(m.skeletalMuscle,s.unit)+s.unit:''}</div>
-      <button class="btn btn-sm btn-red" data-delm="${m.id}" aria-label="刪除紀錄">${svgIcon('trash',15)}</button>
-    </div>`).join('');
+  const cols='grid-template-columns:56px 1fr 1fr 1fr 26px';
+  el.innerHTML=`
+    <div style="display:grid;${cols};gap:6px;padding:4px 2px;font-size:11px;color:var(--text2);font-weight:600">
+      <span>日期</span><span style="text-align:right">體重(${s.unit})</span><span style="text-align:right">體脂%</span><span style="text-align:right">骨骼肌(${s.unit})</span><span></span>
+    </div>`+
+    meas.slice(0,measShowAll?meas.length:5).map(m=>`
+    <div style="display:grid;${cols};gap:6px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--sep);font-size:14px" class="tnum">
+      <span style="color:var(--text2);font-size:12px">${(m.date||'').slice(5)}</span>
+      <span style="text-align:right;font-weight:600">${m.weight!=null?displayW(m.weight,s.unit):'-'}</span>
+      <span style="text-align:right">${m.bodyFat!=null?m.bodyFat:'-'}</span>
+      <span style="text-align:right">${m.skeletalMuscle!=null?displayW(m.skeletalMuscle,s.unit):'-'}</span>
+      <button data-delm="${m.id}" aria-label="刪除紀錄" style="border:none;background:none;color:var(--text2);font-size:16px;cursor:pointer;padding:2px">×</button>
+    </div>`).join('')+
+    (meas.length>5?`<button id="meas-toggle-all" style="width:100%;border:none;background:none;color:var(--accent);font-size:13px;font-weight:600;padding:10px 0 2px;cursor:pointer">${measShowAll?'收合':`顯示全部（${meas.length} 筆）`}</button>`:'');
+  const toggle=document.getElementById('meas-toggle-all');
+  if(toggle)toggle.addEventListener('click',()=>{measShowAll=!measShowAll;renderMeasList();});
   el.querySelectorAll('[data-delm]').forEach(b=>b.addEventListener('click',()=>{
     const meas=getMeasurements().filter(m=>m.id!==b.dataset.delm);
     saveMeasurements(meas);renderMeasList();renderBodyCharts();
@@ -2770,15 +2782,22 @@ function renderBodyCharts(){
   if(ctxW){
     if(!chartReady(ctxW,hasData,'尚無身體紀錄'))chartWeight=null;
     else{
-      const g=lineGradient(ctxW,'accent');
       if(chartWeight)chartWeight.destroy();
-      chartWeight=new Chart(ctxW.getContext('2d'),lineCfg({
+      // Dual y-axes: weight (left) and skeletal muscle (right) each auto-fit
+      // their own range — sharing one axis flattened both trends (~30–80 span)
+      const cfg=lineCfg({
         labels,
         datasets:[
-          {label:'體重('+s.unit+')',data:meas.map(m=>m.weight!=null?displayW(m.weight,s.unit):null),borderColor:cssVar('--accent'),backgroundColor:g,fill:true,...linePt},
-          {label:'骨骼肌('+s.unit+')',data:meas.map(m=>m.skeletalMuscle!=null?displayW(m.skeletalMuscle,s.unit):null),borderColor:cssVar('--green'),backgroundColor:'transparent',fill:false,...linePt}
+          {label:'體重('+s.unit+')',data:meas.map(m=>m.weight!=null?displayW(m.weight,s.unit):null),borderColor:cssVar('--accent'),backgroundColor:'transparent',fill:false,yAxisID:'y',...linePt},
+          {label:'骨骼肌('+s.unit+')',data:meas.map(m=>m.skeletalMuscle!=null?displayW(m.skeletalMuscle,s.unit):null),borderColor:cssVar('--green'),backgroundColor:'transparent',fill:false,yAxisID:'y1',...linePt}
         ]
-      },{legend:true,beginAtZero:false}));
+      },{legend:true,beginAtZero:false});
+      cfg.options.scales={
+        x:{grid:{display:false},ticks:{color:cssVar('--text2'),maxRotation:0,autoSkip:true,maxTicksLimit:7}},
+        y:{position:'left',grace:'35%',grid:{color:cssVar('--grid-line'),drawBorder:false},border:{display:false},ticks:{color:cssVar('--accent'),padding:6,maxTicksLimit:6}},
+        y1:{position:'right',grace:'35%',grid:{display:false},border:{display:false},ticks:{color:cssVar('--green'),padding:6,maxTicksLimit:6}}
+      };
+      chartWeight=new Chart(ctxW.getContext('2d'),cfg);
     }
   }
   // Body fat % (unit-independent)
